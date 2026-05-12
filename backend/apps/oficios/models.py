@@ -28,11 +28,10 @@ class Oficio(models.Model):
     def gerar_conteudo(self):
         atendimento = self.encaminhamento.atendimento
         return (
-            f"Senhor(a) {self.encaminhamento.responsavel},\n\n"
-            f"Encaminhamos para conhecimento e providencias a demanda apresentada por {atendimento.nome}, "
-            f"referente ao assunto {atendimento.assunto}.\n\n"
-            f"Descricao do encaminhamento: {self.encaminhamento.descricao}\n\n"
+            f"Ao cumprimentar cordialmente Vossa Senhoria, venho por meio deste encaminhar a demanda "
+            f"apresentada por {atendimento.nome}, referente ao assunto {atendimento.assunto}, para analise "
+            "e providencias cabiveis.\n\n"
+            f"Relato do encaminhamento: {self.encaminhamento.descricao}\n\n"
             "Solicitamos retorno a este gabinete com as medidas adotadas, para que o atendimento parlamentar "
-            "possa ser acompanhado e registrado em historico administrativo.\n\n"
-            f"Atenciosamente,\n{self.encaminhamento.vereador}"
+            "possa ser acompanhado e devidamente registrado."
         )

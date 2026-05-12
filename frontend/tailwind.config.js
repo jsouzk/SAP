@@ -16,6 +16,9 @@ export default {
       boxShadow: {
         soft: "0 12px 30px rgba(15, 23, 42, 0.08)",
       },
+      fontFamily: {
+        handwriting: ['"Segoe Print"', '"Bradley Hand ITC"', "cursive"],
+      },
     },
   },
   plugins: [],
