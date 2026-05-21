@@ -44,11 +44,11 @@ export default function Historico() {
 
   return (
     <>
-      <PageHeader title="Historico" description="Linha do tempo consolidada de atendimentos, encaminhamentos e oficios gerados." />
-      <SearchBar value={search} onChange={setSearch} onSubmit={(event) => event.preventDefault()} placeholder="Buscar no historico" />
+      <PageHeader title="Histórico" description="Linha do tempo consolidada de atendimentos, encaminhamentos e ofícios gerados." />
+      <SearchBar value={search} onChange={setSearch} onSubmit={(event) => event.preventDefault()} placeholder="Buscar no histórico" />
       {loading ? <LoadingState /> : (
         <section className="panel p-5">
-          {items.length === 0 && <EmptyState title="Historico vazio" description="Os eventos administrativos aparecerao aqui conforme o fluxo for executado." />}
+          {items.length === 0 && <EmptyState title="Histórico vazio" description="Os eventos administrativos aparecerão aqui conforme o fluxo for executado." />}
           <div className="space-y-4">
             {items.map((item) => {
               const Icon = icons[item.tipo] || ClipboardList;

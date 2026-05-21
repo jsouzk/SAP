@@ -11,11 +11,12 @@ import Pagination from "../../components/ui/Pagination";
 import SearchBar from "../../components/ui/SearchBar";
 import { useModuleSearch } from "../../context/SearchContext";
 import { useCrudResource } from "../../hooks/useCrudResource";
-import { atendimentosApi } from "../../services/resources";
+import { atendimentosApi, pessoasApi } from "../../services/resources";
 import { formatDate } from "../../utils/formatters";
 
 const createEmptyForm = () => ({
   nome: "",
+  pessoa: "",
   endereco: "",
   telefone: "",
   data_nascimento: "",
@@ -31,6 +32,7 @@ export default function Atendimentos() {
   const [editing, setEditing] = useState(null);
   const [viewing, setViewing] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [pessoas, setPessoas] = useState([]);
   const [formData, setFormData] = useState(createEmptyForm);
   const [errors, setErrors] = useState({});
   const deletingId = deleting?.id;
@@ -42,6 +44,10 @@ export default function Atendimentos() {
 
     return () => window.clearTimeout(timeoutId);
   }, [search]);
+
+  useEffect(() => {
+    pessoasApi.list({ page_size: 100 }).then((data) => setPessoas(data.results)).catch(() => setPessoas([]));
+  }, []);
 
   const openForm = (item = null) => {
     setEditing(item || {});
@@ -59,7 +65,7 @@ export default function Atendimentos() {
     const nextErrors = {};
     if (!formData.nome.trim()) nextErrors.nome = "Informe o nome";
     if (!formData.telefone.trim()) nextErrors.telefone = "Informe o telefone";
-    if (!formData.endereco.trim()) nextErrors.endereco = "Informe o endereco";
+    if (!formData.endereco.trim()) nextErrors.endereco = "Informe o endereço";
     if (!formData.data_atendimento) nextErrors.data_atendimento = "Informe a data do atendimento";
     if (!formData.quem_atendeu.trim()) nextErrors.quem_atendeu = "Digite quem atendeu";
     if (!formData.assunto.trim()) nextErrors.assunto = "Digite o assunto";
@@ -71,7 +77,7 @@ export default function Atendimentos() {
     event.preventDefault();
     if (!validate()) return;
 
-    await resource.save({ ...formData, data_nascimento: formData.data_nascimento || null }, editing?.id);
+    await resource.save({ ...formData, pessoa: formData.pessoa || null, data_nascimento: formData.data_nascimento || null }, editing?.id);
     setEditing(null);
   };
 
@@ -83,14 +89,14 @@ export default function Atendimentos() {
 
   return (
     <>
-      <PageHeader title="Atendimentos" description="Cadastro completo das demandas apresentadas pela populacao ao gabinete." actionLabel="Novo atendimento" onAction={() => openForm()} />
+      <PageHeader title="Atendimentos" description="Cadastro completo das demandas apresentadas pela população ao gabinete." actionLabel="Novo atendimento" onAction={() => openForm()} />
       <SearchBar value={search} onChange={setSearch} onSubmit={(event) => event.preventDefault()} placeholder="Buscar por nome, telefone ou assunto" />
       {resource.loading ? <LoadingState /> : (
         <section className="panel overflow-hidden">
           <div className="hidden overflow-x-auto lg:block">
             <table className="min-w-full">
               <thead className="bg-slate-50">
-                <tr><th className="table-th">Nome</th><th className="table-th">Telefone</th><th className="table-th">Assunto</th><th className="table-th">Atendimento</th><th className="table-th">Atendido por</th><th className="table-th text-right">Acoes</th></tr>
+                <tr><th className="table-th">Nome</th><th className="table-th">Telefone</th><th className="table-th">Assunto</th><th className="table-th">Atendimento</th><th className="table-th">Atendido por</th><th className="table-th text-right">Ações</th></tr>
               </thead>
               <tbody>
                 {resource.items.map((item) => (
@@ -111,7 +117,7 @@ export default function Atendimentos() {
               <article className="rounded-lg border border-slate-200 p-4" key={item.id}>
                 <p className="font-bold text-slate-950">{item.nome}</p>
                 <p className="text-sm text-slate-500">{item.telefone} - {item.assunto}</p>
-                <p className="mt-1 text-xs font-semibold text-slate-500">Atendimento: {formatDate(item.data_atendimento)} - {item.quem_atendeu || "Nao informado"}</p>
+                <p className="mt-1 text-xs font-semibold text-slate-500">Atendimento: {formatDate(item.data_atendimento)} - {item.quem_atendeu || "Não informado"}</p>
                 <div className="mt-3"><Actions onView={() => setViewing(item)} onEdit={() => openForm(item)} onDelete={() => setDeleting(item)} /></div>
               </article>
             ))}
@@ -123,8 +129,9 @@ export default function Atendimentos() {
       <Modal open={Boolean(editing)} title={editing?.id ? "Editar atendimento" : "Novo atendimento"} onClose={() => setEditing(null)}>
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
           <FormField label="Nome" error={errors.nome}><input className="input" name="nome" value={formData.nome} onChange={handleChange} /></FormField>
+          <FormField label="Pessoa cadastrada" error={errors.pessoa}><select className="input" name="pessoa" value={formData.pessoa || ""} onChange={handleChange}><option value="">Sem vinculo</option>{pessoas.map((pessoa) => <option value={pessoa.id} key={pessoa.id}>{pessoa.nome} - {pessoa.cpf || pessoa.telefone || "sem documento"}</option>)}</select></FormField>
           <FormField label="Telefone" error={errors.telefone}><input className="input" name="telefone" value={formData.telefone} onChange={handleChange} /></FormField>
-          <FormField label="Endereco" error={errors.endereco}><input className="input" name="endereco" value={formData.endereco} onChange={handleChange} /></FormField>
+          <FormField label="Endereço" error={errors.endereco}><input className="input" name="endereco" value={formData.endereco} onChange={handleChange} /></FormField>
           <FormField label="Data de nascimento" error={errors.data_nascimento}><input className="input" name="data_nascimento" type="date" value={formData.data_nascimento || ""} onChange={handleChange} /></FormField>
           <FormField label="Data do atendimento" error={errors.data_atendimento}><input className="input" name="data_atendimento" type="date" value={formData.data_atendimento || ""} onChange={handleChange} /></FormField>
           <FormField label="Quem atendeu" error={errors.quem_atendeu}><input className="input" name="quem_atendeu" value={formData.quem_atendeu || ""} onChange={handleChange} placeholder="Digite quem atendeu" type="text" /></FormField>
@@ -136,7 +143,7 @@ export default function Atendimentos() {
       <Modal open={Boolean(viewing)} title="Detalhes do atendimento" onClose={() => setViewing(null)} size="max-w-2xl">
         {viewing && <div className="grid gap-3 text-sm text-slate-700 sm:grid-cols-2">{Object.entries(viewing).map(([key, value]) => <div className="rounded-md bg-slate-50 p-3" key={key}><p className="font-bold capitalize text-slate-500">{key.replaceAll("_", " ")}</p><p>{String(value || "-")}</p></div>)}</div>}
       </Modal>
-      <ConfirmDialog open={Boolean(deleting)} message={`Excluir atendimento de ${deleting?.nome || "este cidadao"}?`} onCancel={() => setDeleting(null)} onConfirm={confirmDelete} />
+      <ConfirmDialog open={Boolean(deleting)} message={`Excluir atendimento de ${deleting?.nome || "este cidadão"}?`} onCancel={() => setDeleting(null)} onConfirm={confirmDelete} />
     </>
   );
 }

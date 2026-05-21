@@ -19,6 +19,7 @@ api.interceptors.response.use(
       localStorage.removeItem("sap_access_token");
       localStorage.removeItem("sap_refresh_token");
       localStorage.removeItem("sap_user");
+      window.dispatchEvent(new Event("sap:auth-expired"));
     }
     return Promise.reject(error);
   },

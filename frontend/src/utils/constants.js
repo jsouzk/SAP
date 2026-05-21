@@ -6,10 +6,10 @@ export const USER_TYPES = [
 ];
 
 export const assuntoOptions = [
-  "Saude",
-  "Educacao",
-  "Assistencia social",
+  "Saúde",
+  "Educação",
+  "Assistência social",
   "Infraestrutura",
-  "Regularizacao",
+  "Regularização",
   "Outros",
 ];

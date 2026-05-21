@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-export function useCrudResource(resource, initialParams = {}) {
+export function useCrudResource(resource, initialParams = {}, options = {}) {
   const [items, setItems] = useState([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -17,7 +17,7 @@ export function useCrudResource(resource, initialParams = {}) {
         setCount(data.count);
         setParams(nextParams);
       } catch (error) {
-        toast.error(error.response?.data?.detail || "Nao foi possivel carregar os dados.");
+        toast.error(error.response?.data?.detail || "Não foi possível carregar os dados.");
       } finally {
         setLoading(false);
       }
@@ -26,6 +26,7 @@ export function useCrudResource(resource, initialParams = {}) {
   );
 
   useEffect(() => {
+    if (options.enabled === false) return;
     load();
   }, []);
 
@@ -42,7 +43,7 @@ export function useCrudResource(resource, initialParams = {}) {
   const remove = async (id) => {
     await toast.promise(resource.remove(id), {
       loading: "Excluindo...",
-      success: "Registro excluido.",
+      success: "Registro excluído.",
       error: "Erro ao excluir registro.",
     });
     await load();

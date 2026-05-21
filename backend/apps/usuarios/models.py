@@ -16,6 +16,7 @@ class UsuarioManager(BaseUserManager):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("tipo_usuario", "administrador")
+        extra_fields.setdefault("is_platform_admin", True)
         extra_fields.setdefault("nome", "Administrador")
         return self.create_user(email, password, **extra_fields)
 
@@ -31,7 +32,9 @@ class Usuario(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     cpf = models.CharField("CPF", max_length=14, unique=True)
     telefone = models.CharField(max_length=20, blank=True)
+    gabinete = models.ForeignKey("assinaturas.Gabinete", related_name="usuarios", on_delete=models.SET_NULL, null=True, blank=True)
     tipo_usuario = models.CharField(max_length=20, choices=TipoUsuario.choices, default=TipoUsuario.ATENDENTE)
+    is_platform_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     criado_em = models.DateTimeField(auto_now_add=True)

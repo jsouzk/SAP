@@ -5,16 +5,24 @@ export default {
     extend: {
       colors: {
         brand: {
-          50: "#ecfdf3",
-          100: "#d1fae1",
-          600: "#15803d",
-          700: "#166534",
-          800: "#14532d",
-          900: "#0f3f24",
+          50: "#f0fdf7",
+          100: "#dcfce9",
+          200: "#bbf7d3",
+          500: "#10b981",
+          600: "#059669",
+          700: "#047857",
+          800: "#065f46",
+          900: "#064e3b",
+          950: "#022c22",
+        },
+        ink: {
+          900: "#111827",
+          950: "#07111f",
         },
       },
       boxShadow: {
-        soft: "0 12px 30px rgba(15, 23, 42, 0.08)",
+        soft: "0 18px 45px rgba(15, 23, 42, 0.08)",
+        lift: "0 22px 60px rgba(2, 44, 34, 0.14)",
       },
       fontFamily: {
         handwriting: ['"Segoe Print"', '"Bradley Hand ITC"', "cursive"],

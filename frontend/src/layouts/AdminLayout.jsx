@@ -6,11 +6,13 @@ import { SearchProvider, useModuleSearch } from "../context/SearchContext";
 
 const titles = {
   "/dashboard": "Dashboard",
+  "/pessoas": "Pessoas atendidas",
   "/atendimentos": "Atendimentos",
   "/encaminhamentos": "Encaminhamentos",
-  "/oficios": "Oficios",
-  "/historico": "Historico",
-  "/usuarios": "Usuarios",
+  "/oficios": "Ofícios",
+  "/historico": "Histórico",
+  "/usuarios": "Usuários",
+  "/admin-saas": "Admin SaaS",
 };
 
 function AdminLayoutContent() {
@@ -23,12 +25,12 @@ function AdminLayoutContent() {
   }, [location.pathname, setSearch]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen text-slate-900">
       <Sidebar open={open} onClose={() => setOpen(false)} />
-      {open && <button className="fixed inset-0 z-30 bg-slate-950/40 lg:hidden" onClick={() => setOpen(false)} aria-label="Fechar menu" />}
-      <div className="lg:pl-72">
+      {open && <button className="fixed inset-0 z-30 bg-ink-950/55 backdrop-blur-sm lg:hidden" onClick={() => setOpen(false)} aria-label="Fechar menu" />}
+      <div className="lg:pl-[304px]">
         <Header title={titles[location.pathname] || "Sistema"} onMenu={() => setOpen(true)} />
-        <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <main className="mx-auto w-full max-w-[1480px] px-3 py-4 sm:px-5 sm:py-6 lg:px-8">
           <Outlet />
         </main>
       </div>

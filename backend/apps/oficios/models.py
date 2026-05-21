@@ -29,7 +29,7 @@ class Oficio(models.Model):
         atendimento = self.encaminhamento.atendimento
         return (
             f"Ao cumprimentar cordialmente Vossa Senhoria, venho por meio deste encaminhar a demanda "
-            f"apresentada por {atendimento.nome}, referente ao assunto {atendimento.assunto}, para analise "
+            f"apresentada por {atendimento.nome}, referente ao assunto {atendimento.assunto}, para análise "
             "e providencias cabiveis.\n\n"
             f"Relato do encaminhamento: {self.encaminhamento.descricao}\n\n"
             "Solicitamos retorno a este gabinete com as medidas adotadas, para que o atendimento parlamentar "

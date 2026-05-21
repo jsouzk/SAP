@@ -41,46 +41,46 @@ function formatOfficialContent(content = "") {
 
 function OficioDocument({ oficio, documentRef }) {
   const vereador = oficio.vereador || "RAIMUNDO NONATO NETO CARNEIRO";
-  const destinatario = oficio.responsavel || oficio.secretaria_destino || "Destinatario nao informado";
-  const cargoDestino = oficio.secretaria_destino || "Camara Municipal de Iranduba";
+  const destinatario = oficio.responsavel || oficio.secretaria_destino || "Destinatário não informado";
+  const cargoDestino = oficio.secretaria_destino || "Câmara Municipal de Iranduba";
   const numero = oficio.numero || "0000/2026";
   const conteudo = formatOfficialContent(oficio.conteudo);
 
   return (
     <article
       ref={documentRef}
-      className="relative mx-auto h-[1123px] w-[794px] overflow-hidden bg-white px-[82px] pb-[88px] pt-[62px] text-[15px] leading-7 text-slate-950 shadow-soft"
+      className="relative mx-auto h-[1123px] w-[794px] overflow-hidden bg-white px-[82px] pb-[88px] pt-[42px] text-[14px] leading-6 text-slate-950 shadow-soft"
     >
-      <svg className="absolute right-0 top-0 h-52 w-[500px]" viewBox="0 0 520 210" fill="none" aria-hidden="true">
-        <path d="M65 0C154 31 232 64 318 70C399 75 466 45 520 20V0H65Z" fill="#f2f8f3" />
-        <path d="M112 0C197 48 279 83 377 80C428 79 477 62 520 44" stroke="#15803d" strokeWidth="8" />
-        <path d="M152 0C233 53 319 107 424 100C463 97 493 86 520 74" stroke="#79b66a" strokeWidth="4" />
+      <svg className="absolute left-0 top-0 h-[170px] w-[570px]" viewBox="0 0 570 170" fill="none" aria-hidden="true">
+        <path d="M0 0C64 28 134 58 222 58C310 58 386 32 475 0H0Z" fill="#f4faf5" />
+        <path d="M0 12C50 39 108 66 180 70C270 76 352 52 442 16" stroke="#137c3a" strokeWidth="7" />
+        <path d="M0 34C41 58 92 82 155 87C245 94 325 73 408 41" stroke="#76b66b" strokeWidth="3.5" />
       </svg>
 
-      <header className="relative z-10 flex items-start justify-between">
-        <div className="flex items-center gap-4">
-          <img src={logoCamara} alt="Camara Municipal de Iranduba" className="h-24 w-24 object-contain" />
-          <div className="border-l-4 border-brand-700 pl-4">
-            <p className="text-[25px] font-semibold uppercase leading-7 tracking-wide text-slate-800">Camara</p>
-            <p className="text-[22px] font-semibold uppercase leading-6 tracking-wide text-slate-800">Municipal de</p>
-            <p className="text-[26px] font-semibold uppercase leading-7 tracking-wide text-brand-800">Iranduba</p>
+      <header className="relative z-10 h-[180px]">
+        <div className="absolute left-0 top-2 flex items-center gap-3">
+          <img src={logoCamara} alt="Câmara Municipal de Iranduba" className="h-[82px] w-[82px] shrink-0 object-contain" />
+          <div className="border-l-[5px] border-brand-700 pl-4 text-left">
+            <p className="text-[23px] font-semibold uppercase leading-[26px] text-slate-800">Câmara</p>
+            <p className="text-[19px] font-semibold uppercase leading-[24px] text-slate-800">Municipal de</p>
+            <p className="text-[24px] font-semibold uppercase leading-[27px] text-brand-800">Iranduba</p>
           </div>
         </div>
       </header>
 
-      <main className="relative z-10 mt-12">
-        <p className="text-sm font-bold uppercase">OFICIO N° {numero} - GV/CMI</p>
-        <p className="mt-8 text-right">Iranduba, {formatLongDate(oficio.criado_em)}.</p>
+      <main className="relative z-10">
+        <p className="text-[13px] font-bold uppercase">OFÍCIO N&deg; {numero} - GVRC/CMI</p>
+        <p className="mt-10 text-right">Iranduba, {formatLongDate(oficio.criado_em)}.</p>
 
-        <section className="mt-12 text-[14px] font-bold uppercase leading-6">
+        <section className="mt-12 text-[13px] font-bold uppercase leading-6">
           <p>A VOSSA SENHORIA</p>
           <p>{destinatario}</p>
           <p>{cargoDestino}</p>
         </section>
 
-        <p className="mt-10">Excelentissimo(a) Senhor(a),</p>
+        <p className="mt-9">Excelentíssimo Presidente,</p>
 
-        <div className="mt-7 whitespace-pre-line text-justify leading-8">
+        <div className="mt-6 whitespace-pre-line text-justify leading-7">
           {conteudo}
         </div>
 
@@ -89,20 +89,20 @@ function OficioDocument({ oficio, documentRef }) {
 
         <section className="mt-24 text-center">
           <div className="mx-auto mb-2 h-px w-72 bg-slate-500" />
-          <p className="font-bold uppercase">{vereador}</p>
-          <p className="font-semibold">Vereador</p>
+          <p className="text-[13px] font-bold uppercase leading-5">{vereador}</p>
+          <p className="text-[13px] font-semibold uppercase leading-5">Vereador</p>
         </section>
       </main>
 
-      <footer className="absolute bottom-10 left-[82px] right-[82px] text-center text-[11px] leading-5 text-slate-600">
-        <svg className="absolute -left-24 -top-28 h-32 w-[460px]" viewBox="0 0 520 160" fill="none" aria-hidden="true">
-          <path d="M0 120C94 76 164 53 260 71C357 89 432 67 520 6" stroke="#15803d" strokeWidth="8" />
-          <path d="M0 145C91 93 171 69 272 91C370 113 441 89 520 31" stroke="#79b66a" strokeWidth="4" />
+      <footer className="absolute bottom-0 left-0 right-0 h-[155px] text-center text-[11px] leading-5 text-slate-700">
+        <svg className="absolute left-0 top-8 h-28 w-[500px]" viewBox="0 0 570 140" fill="none" aria-hidden="true">
+          <path d="M0 88C103 36 190 17 300 38C403 58 485 38 570 0" stroke="#137c3a" strokeWidth="7" />
+          <path d="M0 116C105 61 196 36 310 58C415 78 497 55 570 25" stroke="#76b66b" strokeWidth="3.5" />
         </svg>
-        <div className="relative">
-          <p>Praca dos Tres Poderes, 30 - Centro</p>
+        <div className="absolute bottom-8 left-1/2 w-[260px] -translate-x-1/2 text-center text-[9px] leading-4 text-slate-600">
+          <p>Praça dos Três Poderes, 30 - CENTRO</p>
           <p>Iranduba/AM - CEP: 69415-000</p>
-          <p>camara.iranduba.am.gov.br</p>
+          <p>cm_iranduba@hotmail.com</p>
         </div>
       </footer>
     </article>
@@ -166,13 +166,13 @@ export default function Oficios() {
 
   return (
     <>
-      <PageHeader title="Oficios" description="Geracao, revisao, impressao e exportacao em PDF dos documentos oficiais." actionLabel="Novo oficio" onAction={() => openForm()} />
-      <SearchBar value={search} onChange={setSearch} onSubmit={(event) => event.preventDefault()} placeholder="Buscar por numero ou conteudo" />
+      <PageHeader title="Ofícios" description="Geração, revisão, impressão e exportação em PDF dos documentos oficiais." actionLabel="Novo ofício" onAction={() => openForm()} />
+      <SearchBar value={search} onChange={setSearch} onSubmit={(event) => event.preventDefault()} placeholder="Buscar por número ou conteúdo" />
       {resource.loading ? <LoadingState /> : (
         <section className="panel overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full">
-              <thead className="bg-slate-50"><tr><th className="table-th">Numero</th><th className="table-th">Encaminhamento</th><th className="table-th">Criado em</th><th className="table-th text-right">Acoes</th></tr></thead>
+              <thead className="bg-slate-50"><tr><th className="table-th">Número</th><th className="table-th">Encaminhamento</th><th className="table-th">Criado em</th><th className="table-th text-right">Ações</th></tr></thead>
               <tbody>{resource.items.map((item) => <tr key={item.id}><td className="table-td font-bold text-slate-950">{item.numero || "-"}</td><td className="table-td">{item.encaminhamento_resumo || item.encaminhamento || "-"}</td><td className="table-td">{formatDate(item.criado_em)}</td><td className="table-td"><Actions onView={() => setPreview(item)} onEdit={() => openForm(item)} onDelete={() => setDeleting(item)} /></td></tr>)}</tbody>
             </table>
           </div>
@@ -180,14 +180,14 @@ export default function Oficios() {
           <Pagination page={resource.params.page} count={resource.count} onPage={(page) => resource.load({ page })} />
         </section>
       )}
-      <Modal open={Boolean(editing)} title={editing?.id ? "Editar oficio" : "Novo oficio"} onClose={() => setEditing(null)}>
+      <Modal open={Boolean(editing)} title={editing?.id ? "Editar ofício" : "Novo ofício"} onClose={() => setEditing(null)}>
         <form className="grid gap-4" onSubmit={handleSubmit(submit)}>
-          <FormField label="Encaminhamento" error={errors.encaminhamento}><select className="input" {...register("encaminhamento", { required: "Selecione o encaminhamento" })}><option value="">Selecione</option>{encaminhamentos.map((item) => <option value={item.id} key={item.id}>{item.secretaria_destino || "Destino nao informado"} - {item.responsavel || "Responsavel nao informado"}</option>)}</select></FormField>
-          <FormField label="Conteudo" error={errors.conteudo}><textarea className="input min-h-56" placeholder="Se vazio, a API gera o conteudo automaticamente." {...register("conteudo")} /></FormField>
+          <FormField label="Encaminhamento" error={errors.encaminhamento}><select className="input" {...register("encaminhamento", { required: "Selecione o encaminhamento" })}><option value="">Selecione</option>{encaminhamentos.map((item) => <option value={item.id} key={item.id}>{item.secretaria_destino || "Destino não informado"} - {item.responsavel || "Responsável não informado"}</option>)}</select></FormField>
+          <FormField label="Conteúdo" error={errors.conteudo}><textarea className="input min-h-56" placeholder="Se vazio, a API gera o conteúdo automaticamente." {...register("conteudo")} /></FormField>
           <div className="flex justify-end gap-2"><button type="button" className="btn-secondary" onClick={() => setEditing(null)}>Cancelar</button><button className="btn-primary">Salvar</button></div>
         </form>
       </Modal>
-      <Modal open={Boolean(preview)} title={`Preview do oficio ${preview?.numero || ""}`} onClose={() => setPreview(null)} size="max-w-4xl">
+      <Modal open={Boolean(preview)} title={`Preview do ofício ${preview?.numero || ""}`} onClose={() => setPreview(null)} size="max-w-4xl">
         {preview && (
           <>
             <div className="mb-4 flex justify-end gap-2">
@@ -200,7 +200,7 @@ export default function Oficios() {
           </>
         )}
       </Modal>
-      <ConfirmDialog open={Boolean(deleting)} message="Excluir este oficio?" onCancel={() => setDeleting(null)} onConfirm={confirmDelete} />
+      <ConfirmDialog open={Boolean(deleting)} message="Excluir este ofício?" onCancel={() => setDeleting(null)} onConfirm={confirmDelete} />
     </>
   );
 }

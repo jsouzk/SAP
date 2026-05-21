@@ -3,6 +3,8 @@ from django.conf import settings
 
 
 class Atendimento(models.Model):
+    gabinete = models.ForeignKey("assinaturas.Gabinete", related_name="atendimentos", on_delete=models.SET_NULL, null=True, blank=True)
+    pessoa = models.ForeignKey("pessoas.PessoaAtendida", related_name="atendimentos", on_delete=models.SET_NULL, null=True, blank=True)
     nome = models.CharField(max_length=150)
     endereco = models.CharField(max_length=255)
     telefone = models.CharField(max_length=20)

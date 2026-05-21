@@ -35,9 +35,9 @@ function FieldLine({ label, value, boldLabel = false }) {
 function EncaminhamentoDocument({ encaminhamento, documentRef }) {
   const vereador = encaminhamento.vereador || "Vereador(a)";
   const secretaria = encaminhamento.secretaria_destino || "Secretaria destino";
-  const responsavel = encaminhamento.responsavel || "Responsavel";
-  const atendido = encaminhamento.atendimento_nome || "Cidadao(a)";
-  const assunto = encaminhamento.descricao || encaminhamento.atendimento_assunto || "Assunto nao informado";
+  const responsavel = encaminhamento.responsavel || "Responsável";
+  const atendido = encaminhamento.atendimento_nome || "Cidadão(a)";
+  const assunto = encaminhamento.descricao || encaminhamento.atendimento_assunto || "Assunto não informado";
 
   return (
     <article ref={documentRef} className="mx-auto h-[794px] w-[1123px] bg-white p-8 text-slate-950 shadow-soft">
@@ -45,10 +45,10 @@ function EncaminhamentoDocument({ encaminhamento, documentRef }) {
         <header className="grid grid-cols-[1fr_1.2fr_1fr] items-end border-b-2 border-slate-600 px-5 pb-2 pt-7">
           <div />
           <div className="text-center">
-            <img src={logoCamara} alt="Camara Municipal de Iranduba" className="mx-auto h-20 w-20 object-contain" />
+            <img src={logoCamara} alt="Câmara Municipal de Iranduba" className="mx-auto h-20 w-20 object-contain" />
             <p className="mt-2 font-serif text-[22px] italic leading-7">Estado do Amazonas</p>
-            <p className="font-serif text-[22px] italic leading-7">Camara Municipal de Iranduba</p>
-            <p className="font-serif text-[22px] italic leading-7">Assessoria da Presidencia</p>
+            <p className="font-serif text-[22px] italic leading-7">Câmara Municipal de Iranduba</p>
+            <p className="font-serif text-[22px] italic leading-7">Assessoria da Presidência</p>
           </div>
           <div className="text-right text-[25px] font-bold uppercase">Encaminhamento</div>
         </header>
@@ -69,7 +69,7 @@ function EncaminhamentoDocument({ encaminhamento, documentRef }) {
           </div>
 
           <section className="mt-8">
-            <p className="text-[23px] font-bold">Discriminacao do Assunto:</p>
+            <p className="text-[23px] font-bold">Discriminação do Assunto:</p>
             <div className="mt-3 space-y-5">
               <div className="border-b-2 border-slate-500 px-4 pb-1 font-handwriting text-[27px] leading-8 text-blue-900">{assunto}</div>
               <div className="border-b-2 border-slate-500 px-4 pb-1 font-handwriting text-[27px] leading-8 text-blue-900">&nbsp;</div>
@@ -78,7 +78,7 @@ function EncaminhamentoDocument({ encaminhamento, documentRef }) {
         </main>
 
         <footer className="grid grid-cols-[1fr_320px] items-end gap-8 px-5 pb-5">
-          <p className="text-[22px] font-bold">Grato pela atencao dispensada.</p>
+          <p className="text-[22px] font-bold">Grato pela atenção dispensada.</p>
           <div className="text-center">
             <div className="mb-1 h-px w-full bg-slate-600" />
             <p className="text-sm font-semibold uppercase">{vereador}</p>
@@ -137,6 +137,60 @@ export default function Encaminhamentos() {
     pdf.save(`encaminhamento-${preview?.id || "documento"}.pdf`);
   };
 
+  const printDocument = async () => {
+    if (!previewRef.current) return;
+
+    const canvas = await html2canvas(previewRef.current, {
+      backgroundColor: "#ffffff",
+      scale: 2,
+      useCORS: true,
+    });
+    const imgData = canvas.toDataURL("image/png");
+    const printWindow = window.open("", "_blank", "width=1200,height=820");
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <!doctype html>
+      <html>
+        <head>
+          <title>Encaminhamento</title>
+          <style>
+            @page { size: A4 landscape; margin: 0; }
+            html, body {
+              margin: 0;
+              min-height: 100%;
+              background: #fff;
+            }
+            body {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            img {
+              width: 297mm;
+              height: 210mm;
+              object-fit: contain;
+              display: block;
+            }
+            @media print {
+              body { width: 297mm; height: 210mm; }
+            }
+          </style>
+        </head>
+        <body>
+          <img src="${imgData}" alt="Encaminhamento" />
+          <script>
+            window.onload = () => {
+              window.focus();
+              window.print();
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   const confirmDelete = async () => {
     if (!deletingId) return;
     await resource.remove(deletingId);
@@ -145,13 +199,13 @@ export default function Encaminhamentos() {
 
   return (
     <>
-      <PageHeader title="Encaminhamentos" description="Controle das demandas enviadas para secretarias, responsaveis e gabinete." actionLabel="Novo encaminhamento" onAction={() => openForm()} />
-      <SearchBar value={search} onChange={setSearch} onSubmit={(event) => event.preventDefault()} placeholder="Buscar por secretaria, vereador ou responsavel" />
+      <PageHeader title="Encaminhamentos" description="Controle das demandas enviadas para secretarias, responsáveis e gabinete." actionLabel="Novo encaminhamento" onAction={() => openForm()} />
+      <SearchBar value={search} onChange={setSearch} onSubmit={(event) => event.preventDefault()} placeholder="Buscar por secretaria, vereador ou responsável" />
       {resource.loading ? <LoadingState /> : (
         <section className="panel overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full">
-              <thead className="bg-slate-50"><tr><th className="table-th">Atendimento</th><th className="table-th">Vereador</th><th className="table-th">Destino</th><th className="table-th">Data</th><th className="table-th text-right">Acoes</th></tr></thead>
+              <thead className="bg-slate-50"><tr><th className="table-th">Atendimento</th><th className="table-th">Vereador</th><th className="table-th">Destino</th><th className="table-th">Data</th><th className="table-th text-right">Ações</th></tr></thead>
               <tbody>{resource.items.map((item) => <tr key={item.id}><td className="table-td font-semibold">{item.atendimento_nome || item.atendimento?.nome || item.atendimento || "-"}</td><td className="table-td">{item.vereador || "-"}</td><td className="table-td">{item.secretaria_destino || "-"}</td><td className="table-td">{formatDate(item.data)}</td><td className="table-td"><Actions onView={() => setPreview(item)} onEdit={() => openForm(item)} onDelete={() => setDeleting(item)} /></td></tr>)}</tbody>
             </table>
           </div>
@@ -164,9 +218,9 @@ export default function Encaminhamentos() {
           <FormField label="Atendimento" error={errors.atendimento}><select className="input" {...register("atendimento", { required: "Selecione o atendimento" })}><option value="">Selecione</option>{atendimentos.map((item) => <option value={item.id} key={item.id}>{item.nome || "Sem nome"} - {item.assunto || "Sem assunto"}</option>)}</select></FormField>
           <FormField label="Vereador" error={errors.vereador}><input className="input" {...register("vereador", { required: "Informe o vereador" })} /></FormField>
           <FormField label="Secretaria destino" error={errors.secretaria_destino}><input className="input" {...register("secretaria_destino", { required: "Informe o destino" })} /></FormField>
-          <FormField label="Responsavel" error={errors.responsavel}><input className="input" {...register("responsavel", { required: "Informe o responsavel" })} /></FormField>
+          <FormField label="Responsável" error={errors.responsavel}><input className="input" {...register("responsavel", { required: "Informe o responsável" })} /></FormField>
           <FormField label="Data" error={errors.data}><input className="input" type="date" {...register("data", { required: "Informe a data" })} /></FormField>
-          <FormField label="Descricao" error={errors.descricao}><textarea className="input min-h-28" {...register("descricao", { required: "Informe a descricao" })} /></FormField>
+          <FormField label="Descrição" error={errors.descricao}><textarea className="input min-h-28" {...register("descricao", { required: "Informe a descrição" })} /></FormField>
           <div className="flex justify-end gap-2 md:col-span-2"><button type="button" className="btn-secondary" onClick={() => setEditing(null)}>Cancelar</button><button className="btn-primary">Salvar</button></div>
         </form>
       </Modal>
@@ -174,7 +228,7 @@ export default function Encaminhamentos() {
         {preview && (
           <>
             <div className="mb-4 flex justify-end gap-2">
-              <button className="btn-secondary" onClick={() => window.print()}><Printer size={18} />Imprimir</button>
+              <button className="btn-secondary" onClick={printDocument}><Printer size={18} />Imprimir</button>
               <button className="btn-primary" onClick={exportPdf}><Download size={18} />PDF</button>
             </div>
             <div className="overflow-x-auto rounded-lg bg-slate-100 p-4">

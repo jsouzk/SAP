@@ -46,3 +46,16 @@ export const encaminhamentosApi = createResource("/encaminhamentos/");
 export const oficiosApi = createResource("/oficios/");
 export const usuariosApi = createResource("/usuarios/");
 export const historicoApi = createResource("/historico/");
+export const gabinetesApi = createResource("/gabinetes/");
+gabinetesApi.cobrar = async (id, payload = {}) => {
+  const { data } = await api.post(`/gabinetes/${id}/cobrar/`, payload);
+  return data;
+};
+export const cobrancasApi = {
+  ...createResource("/cobrancas/"),
+  async gerarPagamento(id) {
+    const { data } = await api.post(`/cobrancas/${id}/gerar-pagamento/`);
+    return data;
+  },
+};
+export const pessoasApi = createResource("/pessoas/");

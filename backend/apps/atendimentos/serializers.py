@@ -4,10 +4,15 @@ from .models import Atendimento
 
 
 class AtendimentoSerializer(serializers.ModelSerializer):
+    pessoa_nome = serializers.CharField(source="pessoa.nome", read_only=True)
+
     class Meta:
         model = Atendimento
         fields = [
             "id",
+            "gabinete",
+            "pessoa",
+            "pessoa_nome",
             "nome",
             "endereco",
             "telefone",
@@ -20,4 +25,4 @@ class AtendimentoSerializer(serializers.ModelSerializer):
             "criado_em",
             "atualizado_em",
         ]
-        read_only_fields = ["id", "criado_por", "criado_em", "atualizado_em"]
+        read_only_fields = ["id", "pessoa_nome", "criado_por", "criado_em", "atualizado_em"]
