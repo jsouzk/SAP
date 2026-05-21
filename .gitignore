@@ -17,6 +17,7 @@ dist
 dist-ssr
 staticfiles
 backend/staticfiles
+.tools
 *.local
 .env
 .env.*
