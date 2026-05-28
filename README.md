@@ -92,6 +92,8 @@ Frontend:
 
 ```txt
 VITE_API_URL=http://localhost:8000/api
+VITE_SUPABASE_URL=https://qkhcvablmyrpenzzjltm.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
 ```
 
 ## Endpoints principais
@@ -163,6 +165,8 @@ Configure:
 
 ```txt
 VITE_API_URL=<dominio-do-backend>/api
+VITE_SUPABASE_URL=<url-do-projeto-supabase>
+VITE_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
 ```
 
 Build:
