@@ -44,6 +44,10 @@ export function createResource(path) {
 export const atendimentosApi = createResource("/atendimentos/");
 export const encaminhamentosApi = createResource("/encaminhamentos/");
 export const oficiosApi = createResource("/oficios/");
+oficiosApi.gerarDeEncaminhamento = async (encaminhamento) => {
+  const { data } = await api.post("/oficios/gerar-de-encaminhamento/", { encaminhamento });
+  return data;
+};
 export const usuariosApi = createResource("/usuarios/");
 export const historicoApi = createResource("/historico/");
 export const gabinetesApi = createResource("/gabinetes/");
@@ -51,11 +55,26 @@ gabinetesApi.cobrar = async (id, payload = {}) => {
   const { data } = await api.post(`/gabinetes/${id}/cobrar/`, payload);
   return data;
 };
-export const cobrancasApi = {
-  ...createResource("/cobrancas/"),
-  async gerarPagamento(id) {
-    const { data } = await api.post(`/cobrancas/${id}/gerar-pagamento/`);
+gabinetesApi.renovar = async (id, dias = 30) => {
+  const { data } = await api.post(`/gabinetes/${id}/renovar/`, { dias });
+  return data;
+};
+gabinetesApi.teste = async (id, dias = 7) => {
+  const { data } = await api.post(`/gabinetes/${id}/teste/`, { dias });
+  return data;
+};
+gabinetesApi.suspender = async (id) => {
+  const { data } = await api.post(`/gabinetes/${id}/suspender/`);
+  return data;
+};
+export const pessoasApi = createResource("/pessoas/");
+export const pendenciasApi = createResource("/pendencias/");
+export const auditoriaApi = createResource("/auditoria/");
+export const comentariosApi = createResource("/comentarios/");
+export const anexosApi = createResource("/anexos/");
+export const minhaAssinaturaApi = {
+  async get() {
+    const { data } = await api.get("/minha-assinatura/");
     return data;
   },
 };
-export const pessoasApi = createResource("/pessoas/");

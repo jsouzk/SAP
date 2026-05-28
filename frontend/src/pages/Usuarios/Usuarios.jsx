@@ -15,6 +15,7 @@ import { useModuleSearch } from "../../context/SearchContext";
 import { useCrudResource } from "../../hooks/useCrudResource";
 import { gabinetesApi, usuariosApi } from "../../services/resources";
 import { USER_TYPES } from "../../utils/constants";
+import { formatCpfInput, formatPhoneInput } from "../../utils/formatters";
 
 const emptyForm = { nome: "", email: "", cpf: "", telefone: "", gabinete: "", tipo_usuario: "atendente", is_platform_admin: false, password: "" };
 
@@ -27,7 +28,7 @@ export default function Usuarios() {
   const [deleting, setDeleting] = useState(null);
   const deletingId = deleting?.id;
   const canAdminSaas = user?.is_platform_admin || user?.is_superuser;
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({ defaultValues: emptyForm });
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm({ defaultValues: emptyForm });
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -84,8 +85,8 @@ export default function Usuarios() {
         <form className="grid gap-4 md:grid-cols-2" onSubmit={handleSubmit(submit)}>
           <FormField label="Nome" error={errors.nome}><input className="input" {...register("nome", { required: "Informe o nome" })} /></FormField>
           <FormField label="Email" error={errors.email}><input className="input" type="email" {...register("email", { required: "Informe o email" })} /></FormField>
-          <FormField label="CPF" error={errors.cpf}><input className="input" {...register("cpf", { required: "Informe o CPF" })} /></FormField>
-          <FormField label="Telefone" error={errors.telefone}><input className="input" {...register("telefone")} /></FormField>
+          <FormField label="CPF" error={errors.cpf}><input className="input" {...register("cpf", { required: "Informe o CPF", onChange: (event) => setValue("cpf", formatCpfInput(event.target.value)) })} /></FormField>
+          <FormField label="Telefone" error={errors.telefone}><input className="input" {...register("telefone", { onChange: (event) => setValue("telefone", formatPhoneInput(event.target.value)) })} /></FormField>
           {canAdminSaas && <FormField label="Gabinete" error={errors.gabinete}><select className="input" {...register("gabinete")}><option value="">Sem gabinete</option>{gabinetes.map((gabinete) => <option value={gabinete.id} key={gabinete.id}>{gabinete.nome}</option>)}</select></FormField>}
           <FormField label="Tipo de usuário" error={errors.tipo_usuario}><select className="input" {...register("tipo_usuario", { required: "Selecione o perfil" })}>{USER_TYPES.map((type) => <option value={type.value} key={type.value}>{type.label}</option>)}</select></FormField>
           {canAdminSaas && <label className="flex items-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700"><input type="checkbox" className="h-4 w-4 accent-brand-700" {...register("is_platform_admin")} />Admin da plataforma</label>}

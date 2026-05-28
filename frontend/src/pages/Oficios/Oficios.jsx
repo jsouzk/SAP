@@ -41,8 +41,8 @@ function formatOfficialContent(content = "") {
 
 function OficioDocument({ oficio, documentRef }) {
   const vereador = oficio.vereador || "RAIMUNDO NONATO NETO CARNEIRO";
-  const destinatario = oficio.responsavel || oficio.secretaria_destino || "Destinatário não informado";
-  const cargoDestino = oficio.secretaria_destino || "Câmara Municipal de Iranduba";
+  const destinatario = oficio.responsavel || oficio.secretaria_destino || "Destinatario nao informado";
+  const cargoDestino = oficio.secretaria_destino || "Camara Municipal de Iranduba";
   const numero = oficio.numero || "0000/2026";
   const conteudo = formatOfficialContent(oficio.conteudo);
 
@@ -59,9 +59,9 @@ function OficioDocument({ oficio, documentRef }) {
 
       <header className="relative z-10 h-[180px]">
         <div className="absolute left-0 top-2 flex items-center gap-3">
-          <img src={logoCamara} alt="Câmara Municipal de Iranduba" className="h-[82px] w-[82px] shrink-0 object-contain" />
+          <img src={logoCamara} alt="Camara Municipal de Iranduba" className="h-[82px] w-[82px] shrink-0 object-contain" />
           <div className="border-l-[5px] border-brand-700 pl-4 text-left">
-            <p className="text-[23px] font-semibold uppercase leading-[26px] text-slate-800">Câmara</p>
+            <p className="text-[23px] font-semibold uppercase leading-[26px] text-slate-800">C&acirc;mara</p>
             <p className="text-[19px] font-semibold uppercase leading-[24px] text-slate-800">Municipal de</p>
             <p className="text-[24px] font-semibold uppercase leading-[27px] text-brand-800">Iranduba</p>
           </div>
@@ -69,7 +69,7 @@ function OficioDocument({ oficio, documentRef }) {
       </header>
 
       <main className="relative z-10">
-        <p className="text-[13px] font-bold uppercase">OFÍCIO N&deg; {numero} - GVRC/CMI</p>
+        <p className="text-[13px] font-bold uppercase">OF&Iacute;CIO N&deg; {numero} - GVRC/CMI</p>
         <p className="mt-10 text-right">Iranduba, {formatLongDate(oficio.criado_em)}.</p>
 
         <section className="mt-12 text-[13px] font-bold uppercase leading-6">
@@ -78,7 +78,7 @@ function OficioDocument({ oficio, documentRef }) {
           <p>{cargoDestino}</p>
         </section>
 
-        <p className="mt-9">Excelentíssimo Presidente,</p>
+        <p className="mt-9">Excelent&iacute;ssimo Presidente,</p>
 
         <div className="mt-6 whitespace-pre-line text-justify leading-7">
           {conteudo}
@@ -100,7 +100,7 @@ function OficioDocument({ oficio, documentRef }) {
           <path d="M0 116C105 61 196 36 310 58C415 78 497 55 570 25" stroke="#76b66b" strokeWidth="3.5" />
         </svg>
         <div className="absolute bottom-8 left-1/2 w-[260px] -translate-x-1/2 text-center text-[9px] leading-4 text-slate-600">
-          <p>Praça dos Três Poderes, 30 - CENTRO</p>
+          <p>Pra&ccedil;a dos Tr&ecirc;s Poderes, 30 - CENTRO</p>
           <p>Iranduba/AM - CEP: 69415-000</p>
           <p>cm_iranduba@hotmail.com</p>
         </div>
@@ -108,7 +108,6 @@ function OficioDocument({ oficio, documentRef }) {
     </article>
   );
 }
-
 export default function Oficios() {
   const resource = useCrudResource(oficiosApi);
   const { search, setSearch } = useModuleSearch();
@@ -204,3 +203,4 @@ export default function Oficios() {
     </>
   );
 }
+

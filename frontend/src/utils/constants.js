@@ -13,3 +13,15 @@ export const assuntoOptions = [
   "Regularização",
   "Outros",
 ];
+
+export const ATENDIMENTO_STATUS = [
+  { value: "novo", label: "Novo" },
+  { value: "em_andamento", label: "Em andamento" },
+  { value: "encaminhado", label: "Encaminhado" },
+  { value: "resolvido", label: "Resolvido" },
+  { value: "arquivado", label: "Arquivado" },
+];
+
+export const ATENDIMENTO_STATUS_LABELS = Object.fromEntries(
+  ATENDIMENTO_STATUS.map((status) => [status.value, status.label]),
+);

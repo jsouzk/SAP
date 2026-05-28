@@ -35,7 +35,7 @@ def _response_data(result, expected_statuses):
 def validate_webhook_signature(request):
     secret = settings.MERCADO_PAGO_WEBHOOK_SECRET
     if not secret:
-        return True
+        return bool(settings.DEBUG)
 
     signature = request.headers.get("x-signature", "")
     request_id = request.headers.get("x-request-id", "")
@@ -159,7 +159,7 @@ def apply_payment_update(payment_data):
     cobranca.gateway = "mercadopago"
 
     if status == "approved":
-        _mark_as_paid(cobranca)
+        mark_cobranca_as_paid(cobranca)
     elif status in {"cancelled", "rejected", "refunded", "charged_back"} and cobranca.status != Cobranca.Status.PAGA:
         cobranca.status = Cobranca.Status.CANCELADA
         cobranca.save(update_fields=["status", "metodo_pagamento", "gateway", "gateway_payment_id", "atualizado_em"])
@@ -169,7 +169,7 @@ def apply_payment_update(payment_data):
     return cobranca
 
 
-def _mark_as_paid(cobranca):
+def mark_cobranca_as_paid(cobranca):
     today = timezone.localdate()
     base_date = cobranca.gabinete.fim_licenca or today
     if base_date < today:

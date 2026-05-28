@@ -8,6 +8,7 @@ class PessoaAtendida(models.Model):
     telefone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
     data_nascimento = models.DateField(null=True, blank=True)
+    local_trabalho = models.CharField(max_length=150, blank=True)
     titulo_eleitor = models.CharField(max_length=30, blank=True)
     zona_eleitoral = models.CharField(max_length=20, blank=True)
     secao_eleitoral = models.CharField(max_length=20, blank=True)
@@ -17,11 +18,20 @@ class PessoaAtendida(models.Model):
     cidade = models.CharField(max_length=120, default="Iranduba")
     observacoes = models.TextField(blank=True)
     criado_por = models.ForeignKey("usuarios.Usuario", on_delete=models.SET_NULL, null=True, blank=True)
+    ativo = models.BooleanField(default=True, db_index=True)
+    excluido_por = models.ForeignKey("usuarios.Usuario", related_name="pessoas_excluidas", on_delete=models.SET_NULL, null=True, blank=True)
+    excluido_em = models.DateTimeField(null=True, blank=True)
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["nome"]
+        indexes = [
+            models.Index(fields=["gabinete", "nome"]),
+            models.Index(fields=["gabinete", "cpf"]),
+            models.Index(fields=["telefone"]),
+            models.Index(fields=["criado_em"]),
+        ]
 
     def __str__(self):
         return self.nome

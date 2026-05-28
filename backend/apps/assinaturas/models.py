@@ -18,12 +18,24 @@ class Gabinete(models.Model):
     fim_licenca = models.DateField(null=True, blank=True)
     valor_mensal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     limite_usuarios = models.PositiveIntegerField(default=5)
+    logo_url = models.URLField(blank=True)
+    assinatura_nome = models.CharField(max_length=150, blank=True)
+    assinatura_cargo = models.CharField(max_length=80, default="Vereador")
+    dias_prazo_padrao = models.PositiveIntegerField(default=7)
+    secretarias_padrao = models.TextField(blank=True)
+    assuntos_padrao = models.TextField(blank=True)
+    template_oficio = models.TextField(blank=True)
     observacoes = models.TextField(blank=True)
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["nome"]
+        indexes = [
+            models.Index(fields=["status_licenca"]),
+            models.Index(fields=["fim_licenca"]),
+            models.Index(fields=["criado_em"]),
+        ]
 
     def __str__(self):
         return self.nome

@@ -2,6 +2,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,6 +23,9 @@ def config_bool(name, default=False):
 SECRET_KEY = config("SECRET_KEY", default="dev-secret-key-change-me")
 DEBUG = config_bool("DEBUG", default=True)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")
+
+if not DEBUG and SECRET_KEY == "dev-secret-key-change-me":
+    raise ImproperlyConfigured("Configure SECRET_KEY em producao.")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -74,8 +78,9 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASE_URL = config("DATABASE_URL", default="")
 
 if DATABASE_URL:
+    ssl_require = not DATABASE_URL.startswith("sqlite")
     DATABASES = {
-        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True),
+        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=ssl_require),
     }
 else:
     DATABASES = {
@@ -105,6 +110,21 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+ANEXO_MAX_UPLOAD_SIZE = int(config("ANEXO_MAX_UPLOAD_SIZE", default=str(5 * 1024 * 1024)))
+ANEXO_ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".doc", ".docx"}
+ANEXO_ALLOWED_CONTENT_TYPES = {
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+}
+IMPORTACAO_MAX_UPLOAD_SIZE = int(config("IMPORTACAO_MAX_UPLOAD_SIZE", default=str(2 * 1024 * 1024)))
+IMPORTACAO_MAX_LINHAS = int(config("IMPORTACAO_MAX_LINHAS", default="1000"))
 STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
@@ -116,7 +136,23 @@ CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", default="http://localhost:
 CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="http://localhost:5173,http://127.0.0.1:5173").split(",")
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
 BACKEND_URL = config("BACKEND_URL", default="http://localhost:8000")
+EMAIL_BACKEND = config("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = config("EMAIL_HOST", default="localhost")
+EMAIL_PORT = int(config("EMAIL_PORT", default="25"))
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = config_bool("EMAIL_USE_TLS", default=False)
+EMAIL_USE_SSL = config_bool("EMAIL_USE_SSL", default=False)
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="Sistema de Atendimento Parlamentar <no-reply@localhost>")
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = config_bool("SECURE_SSL_REDIRECT", default=not DEBUG)
+SESSION_COOKIE_SECURE = config_bool("SESSION_COOKIE_SECURE", default=not DEBUG)
+CSRF_COOKIE_SECURE = config_bool("CSRF_COOKIE_SECURE", default=not DEBUG)
+SECURE_HSTS_SECONDS = int(config("SECURE_HSTS_SECONDS", default="31536000" if not DEBUG else "0"))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = config_bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", default=not DEBUG)
+SECURE_HSTS_PRELOAD = config_bool("SECURE_HSTS_PRELOAD", default=not DEBUG)
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
 
 MERCADO_PAGO_ACCESS_TOKEN = config("MERCADO_PAGO_ACCESS_TOKEN", default="")
 MERCADO_PAGO_PUBLIC_KEY = config("MERCADO_PAGO_PUBLIC_KEY", default="")
@@ -124,8 +160,11 @@ MERCADO_PAGO_WEBHOOK_URL = config("MERCADO_PAGO_WEBHOOK_URL", default="")
 MERCADO_PAGO_WEBHOOK_SECRET = config("MERCADO_PAGO_WEBHOOK_SECRET", default="")
 MERCADO_PAGO_RETURN_URL = config("MERCADO_PAGO_RETURN_URL", default=FRONTEND_URL)
 
+if not DEBUG and MERCADO_PAGO_ACCESS_TOKEN and not MERCADO_PAGO_WEBHOOK_SECRET:
+    raise ImproperlyConfigured("Configure MERCADO_PAGO_WEBHOOK_SECRET em producao.")
+
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("apps.usuarios.authentication.CookieJWTAuthentication",),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_PAGINATION_CLASS": "apps.core.pagination.DefaultPagination",
     "PAGE_SIZE": 10,
@@ -137,3 +176,10 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
+
+JWT_AUTH_COOKIE = config("JWT_AUTH_COOKIE", default="sap_access_token")
+JWT_REFRESH_COOKIE = config("JWT_REFRESH_COOKIE", default="sap_refresh_token")
+JWT_COOKIE_SECURE = config_bool("JWT_COOKIE_SECURE", default=not DEBUG)
+JWT_COOKIE_HTTP_ONLY = True
+JWT_COOKIE_SAMESITE = config("JWT_COOKIE_SAMESITE", default="Lax")
+CORS_ALLOW_CREDENTIALS = True

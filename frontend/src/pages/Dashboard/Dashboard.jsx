@@ -1,5 +1,6 @@
-import { ArrowUpRight, ClipboardList, Download, FileText, Printer, RefreshCw, Send, Users } from "lucide-react";
+import { ArrowUpRight, ClipboardList, Download, FileText, ListChecks, Plus, Printer, RefreshCw, Send, UserPlus, Users } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import jsPDF from "jspdf";
 
 import api from "../../services/api";
@@ -10,6 +11,11 @@ const fallback = {
   total_encaminhamentos: 0,
   total_oficios: 0,
   total_usuarios: 0,
+  atendimentos_pendentes: 0,
+  ranking_bairros: [],
+  ranking_assuntos: [],
+  ranking_secretarias: [],
+  produtividade_usuarios: [],
   serie_mensal: [],
   recentes: [],
 };
@@ -19,12 +25,27 @@ const metrics = [
   { key: "total_encaminhamentos", label: "Encaminhamentos", icon: Send, tone: "bg-cyan-50 text-cyan-700" },
   { key: "total_oficios", label: "Ofícios gerados", icon: FileText, tone: "bg-violet-50 text-violet-700" },
   { key: "total_usuarios", label: "Usuários", icon: Users, tone: "bg-amber-50 text-amber-700" },
+  { key: "atendimentos_pendentes", label: "Pendências", icon: RefreshCw, tone: "bg-rose-50 text-rose-700" },
 ];
 
 const chartLegend = [
   { key: "atendimentos", label: "Atendimentos", className: "bg-emerald-500" },
   { key: "encaminhamentos", label: "Encaminhamentos", className: "bg-cyan-500" },
   { key: "oficios", label: "Ofícios", className: "bg-violet-500" },
+];
+
+const quickActions = [
+  { to: "/atendimentos", label: "Atendimentos", icon: Plus, tone: "bg-brand-700 text-white hover:bg-brand-800" },
+  { to: "/pessoas", label: "Cadastrar pessoa", icon: UserPlus, tone: "bg-white text-slate-800 hover:bg-slate-50" },
+  { to: "/pendencias", label: "Ver pendências", icon: ListChecks, tone: "bg-white text-slate-800 hover:bg-slate-50" },
+  { to: "/oficios", label: "Gerar ofício", icon: FileText, tone: "bg-white text-slate-800 hover:bg-slate-50" },
+];
+
+const firstSteps = [
+  "Cadastre ou localize uma pessoa pelo CPF, telefone ou nome.",
+  "Registre o atendimento com assunto, responsável e prazo.",
+  "Se precisar acionar uma secretaria, crie um encaminhamento.",
+  "Gere o ofício a partir do encaminhamento e acompanhe em Pendências.",
 ];
 
 function downloadFile(filename, content, type) {
@@ -43,8 +64,26 @@ function metricRows(data, totalMovimentos) {
     ["Encaminhamentos", data.total_encaminhamentos],
     ["Ofícios gerados", data.total_oficios],
     ["Usuários", data.total_usuarios],
-    ["Movimentacoes", totalMovimentos],
+    ["Atendimentos pendentes", data.atendimentos_pendentes],
+    ["Movimentações", totalMovimentos],
   ];
+}
+
+function RankingList({ title, items }) {
+  return (
+    <section className="panel p-5">
+      <h2 className="text-lg font-black text-slate-950">{title}</h2>
+      <div className="mt-4 space-y-3">
+        {(items || []).length === 0 && <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-500">Sem dados no período.</p>}
+        {(items || []).map((item) => (
+          <div className="grid grid-cols-[1fr_auto] items-center gap-3" key={item.label}>
+            <p className="truncate text-sm font-bold text-slate-700">{item.label || "-"}</p>
+            <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-black text-brand-700">{item.total}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 export default function Dashboard() {
@@ -209,6 +248,27 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-5">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {quickActions.map(({ to, label, icon: Icon, tone }) => (
+          <Link className={`flex min-h-16 items-center justify-center gap-3 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-black shadow-sm transition ${tone}`} to={to} key={to}>
+            <Icon size={18} />
+            {label}
+          </Link>
+        ))}
+      </section>
+
+      <section className="panel p-5">
+        <h2 className="text-lg font-black text-slate-950">Primeiros passos</h2>
+        <div className="mt-4 grid gap-3 md:grid-cols-4">
+          {firstSteps.map((step, index) => (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4" key={step}>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-700 text-sm font-black text-white">{index + 1}</span>
+              <p className="mt-3 text-sm font-semibold leading-6 text-slate-700">{step}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="relative overflow-hidden rounded-3xl bg-slate-950 p-5 text-white shadow-xl shadow-slate-950/10 sm:p-7">
         <div className="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-brand-600/30 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-28 w-2/3 bg-gradient-to-l from-brand-700/25 to-transparent" />
@@ -272,7 +332,7 @@ export default function Dashboard() {
         </section>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {metrics.map(({ key, label, icon: Icon, tone }) => (
           <section className="panel p-5" key={key}>
             <div className="flex items-start justify-between gap-3">
@@ -355,6 +415,13 @@ export default function Dashboard() {
             ))}
           </div>
         </section>
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <RankingList title="Assuntos frequentes" items={data.ranking_assuntos} />
+        <RankingList title="Bairros atendidos" items={data.ranking_bairros} />
+        <RankingList title="Secretarias demandadas" items={data.ranking_secretarias} />
+        <RankingList title="Produtividade" items={data.produtividade_usuarios} />
       </div>
     </div>
   );

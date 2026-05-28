@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Building2, CheckCircle2, Lock, Mail } from "lucide-react";
 
@@ -8,7 +8,7 @@ import { useAuth } from "../../context/AuthContext";
 import FormField from "../../components/ui/FormField";
 
 export default function Login() {
-  const { login, loading, isAuthenticated } = useAuth();
+  const { checkingSession, login, loading, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [showHelp, setShowHelp] = useState(false);
   const {
@@ -17,7 +17,7 @@ export default function Login() {
     formState: { errors },
   } = useForm({ defaultValues: { email: "", password: "" } });
 
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+  if (!checkingSession && isAuthenticated) return <Navigate to="/dashboard" replace />;
 
   const onSubmit = async (values) => {
     try {
@@ -34,7 +34,7 @@ export default function Login() {
         toast.error("Email ou senha inválidos.");
         return;
       }
-      toast.error(error.response?.data?.detail || "Não foi possível entrar no sistema.");
+      toast.error(error.response?.data?.detail || error.response?.data?.user?.gabinete_mensagem_licenca || "Não foi possível entrar no sistema.");
     }
   };
 
@@ -71,6 +71,11 @@ export default function Login() {
                   <input className="input pl-10" type="password" autoComplete="current-password" {...register("password", { required: "Informe a senha" })} />
                 </div>
               </FormField>
+              <div className="text-right">
+                <Link className="text-sm font-bold text-brand-700 transition hover:text-brand-900" to="/esqueci-senha">
+                  Esqueceu sua senha?
+                </Link>
+              </div>
             </div>
 
             {showHelp && <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">Confira o email, a senha e se o backend está rodando em http://localhost:8000.</p>}

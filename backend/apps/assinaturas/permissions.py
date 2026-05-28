@@ -5,9 +5,20 @@ def is_platform_admin(user):
     return bool(user and user.is_authenticated and (user.is_superuser or getattr(user, "is_platform_admin", False)))
 
 
+def is_gabinete_admin(user):
+    return bool(user and user.is_authenticated and getattr(user, "tipo_usuario", "") == "administrador")
+
+
 class IsPlatformAdmin(BasePermission):
     def has_permission(self, request, view):
         return is_platform_admin(request.user)
+
+
+class IsGabineteAdminOrPlatform(BasePermission):
+    message = "Apenas administradores podem executar esta acao."
+
+    def has_permission(self, request, view):
+        return is_platform_admin(request.user) or is_gabinete_admin(request.user)
 
 
 class HasActiveLicense(BasePermission):

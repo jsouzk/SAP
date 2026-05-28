@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from apps.assinaturas.permissions import is_platform_admin
+
 from .models import Oficio
 
 
@@ -45,3 +47,14 @@ class OficioSerializer(serializers.ModelSerializer):
 
     def get_encaminhamento_resumo(self, obj):
         return f"{obj.encaminhamento.secretaria_destino} - {obj.encaminhamento.atendimento.nome}"
+
+    def validate_encaminhamento(self, encaminhamento):
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
+        if is_platform_admin(user):
+            return encaminhamento
+
+        gabinete_id = encaminhamento.atendimento.gabinete_id
+        if gabinete_id != getattr(user, "gabinete_id", None):
+            raise serializers.ValidationError("Encaminhamento não pertence ao seu gabinete.")
+        return encaminhamento

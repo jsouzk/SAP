@@ -3,41 +3,34 @@ import api from "../services/api";
 
 const AuthContext = createContext(null);
 
-function getStoredUser() {
-  const stored = localStorage.getItem("sap_user");
-  if (!stored) return null;
-
-  try {
-    return JSON.parse(stored);
-  } catch {
-    localStorage.removeItem("sap_user");
-    localStorage.removeItem("sap_access_token");
-    localStorage.removeItem("sap_refresh_token");
-    return null;
-  }
-}
-
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(getStoredUser);
-  const [token, setToken] = useState(() => localStorage.getItem("sap_access_token"));
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  const loadSession = async () => {
+    try {
+      const { data } = await api.get("/auth/me/");
+      setUser(data.user);
+      return data.user;
+    } catch {
+      setUser(null);
+      return null;
+    } finally {
+      setCheckingSession(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSession();
+  }, []);
 
   const login = async ({ email, password }) => {
     setLoading(true);
     try {
-      localStorage.removeItem("sap_access_token");
-      localStorage.removeItem("sap_refresh_token");
-      localStorage.removeItem("sap_user");
-      setToken(null);
       setUser(null);
-
       const { data } = await api.post("/auth/token/", { email, password });
-      localStorage.setItem("sap_access_token", data.access);
-      localStorage.setItem("sap_refresh_token", data.refresh);
-      setToken(data.access);
-
       const profile = data.user || { nome: email, email, tipo_usuario: "administrador" };
-      localStorage.setItem("sap_user", JSON.stringify(profile));
       setUser(profile);
       return profile;
     } finally {
@@ -45,16 +38,22 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("sap_access_token");
-    localStorage.removeItem("sap_refresh_token");
-    localStorage.removeItem("sap_user");
-    setToken(null);
-    setUser(null);
+  const logout = async () => {
+    try {
+      await api.post("/auth/logout/");
+    } catch {
+      // The local session still needs to be cleared if the backend is unreachable.
+    } finally {
+      setUser(null);
+      setCheckingSession(false);
+    }
   };
 
   useEffect(() => {
-    const handleAuthExpired = () => logout();
+    const handleAuthExpired = () => {
+      setUser(null);
+      setCheckingSession(false);
+    };
     window.addEventListener("sap:auth-expired", handleAuthExpired);
     return () => window.removeEventListener("sap:auth-expired", handleAuthExpired);
   }, []);
@@ -63,11 +62,12 @@ export function AuthProvider({ children }) {
     () => ({
       user,
       loading,
+      checkingSession,
       login,
       logout,
-      isAuthenticated: Boolean(token),
+      isAuthenticated: Boolean(user),
     }),
-    [user, loading, token],
+    [user, loading, checkingSession],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
