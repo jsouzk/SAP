@@ -1,11 +1,10 @@
-from django.conf import settings
 from django.db.models import Count, F, Q, Sum
 from datetime import timedelta
 
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -17,16 +16,26 @@ from apps.oficios.models import Oficio
 from apps.usuarios.models import Usuario
 
 from .models import Cobranca, Gabinete
-from .mercado_pago import (
-    MercadoPagoError,
-    apply_payment_update,
-    create_checkout_preference,
-    get_payment,
-    mark_cobranca_as_paid,
-    validate_webhook_signature,
-)
 from .permissions import IsPlatformAdmin
 from .serializers import CobrancaSerializer, GabineteSerializer, MinhaAssinaturaSerializer
+
+
+def mark_cobranca_as_paid(cobranca):
+    today = timezone.localdate()
+    base_date = cobranca.gabinete.fim_licenca or today
+    if base_date < today:
+        base_date = today
+
+    cobranca.status = Cobranca.Status.PAGA
+    cobranca.pago_em = today
+    cobranca.metodo_pagamento = Cobranca.Metodo.MANUAL
+    cobranca.save(update_fields=["status", "pago_em", "metodo_pagamento", "atualizado_em"])
+
+    gabinete = cobranca.gabinete
+    gabinete.status_licenca = Gabinete.StatusLicenca.ATIVA
+    gabinete.inicio_licenca = today
+    gabinete.fim_licenca = base_date + timedelta(days=30)
+    gabinete.save(update_fields=["status_licenca", "inicio_licenca", "fim_licenca", "atualizado_em"])
 
 
 class GabineteViewSet(AuditModelViewSetMixin, ModelViewSet):
@@ -61,9 +70,6 @@ class GabineteViewSet(AuditModelViewSetMixin, ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="cobrar")
     def cobrar(self, request, pk=None):
-        if not settings.MERCADO_PAGO_ACCESS_TOKEN:
-            return Response({"detail": "Configure MERCADO_PAGO_ACCESS_TOKEN no backend/.env para gerar cobranças."}, status=status.HTTP_400_BAD_REQUEST)
-
         gabinete = self.get_object()
         today = timezone.localdate()
         referencia = request.data.get("referencia") or today.strftime("%m/%Y")
@@ -79,7 +85,7 @@ class GabineteViewSet(AuditModelViewSetMixin, ModelViewSet):
                 valor=valor,
                 vencimento=vencimento,
                 status=Cobranca.Status.ABERTA,
-                metodo_pagamento=Cobranca.Metodo.PIX,
+                metodo_pagamento=Cobranca.Metodo.MANUAL,
             )
 
         if not created and cobranca.status == Cobranca.Status.PAGA:
@@ -94,15 +100,8 @@ class GabineteViewSet(AuditModelViewSetMixin, ModelViewSet):
             cobranca.status = Cobranca.Status.ABERTA
             cobranca.save(update_fields=["valor", "vencimento", "status", "atualizado_em"])
 
-        try:
-            payment_data = create_checkout_preference(cobranca)
-        except MercadoPagoError as exc:
-            if created:
-                cobranca.delete()
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-
         serializer = CobrancaSerializer(cobranca)
-        return Response({**serializer.data, "pagamento": payment_data}, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"], url_path="renovar")
     def renovar(self, request, pk=None):
@@ -155,17 +154,6 @@ class CobrancaViewSet(AuditModelViewSetMixin, ModelViewSet):
         if status_cobranca:
             queryset = queryset.filter(status=status_cobranca)
         return queryset
-
-    @action(detail=True, methods=["post"], url_path="gerar-pagamento")
-    def gerar_pagamento(self, request, pk=None):
-        cobranca = self.get_object()
-        try:
-            payment_data = create_checkout_preference(cobranca)
-        except MercadoPagoError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer = self.get_serializer(cobranca)
-        return Response({**serializer.data, "pagamento": payment_data})
 
     @action(detail=True, methods=["post"], url_path="marcar-paga")
     def marcar_paga(self, request, pk=None):
@@ -226,59 +214,3 @@ def minha_assinatura(request):
     cobrancas = Cobranca.objects.filter(gabinete=gabinete).order_by("-vencimento", "-criado_em")[:24]
     serializer = MinhaAssinaturaSerializer({"gabinete": gabinete, "cobrancas": cobrancas})
     return Response(serializer.data)
-
-
-@api_view(["POST", "GET"])
-@permission_classes([AllowAny])
-def mercado_pago_webhook(request):
-    if request.method == "POST" and not validate_webhook_signature(request):
-        return Response({"detail": "Assinatura do Mercado Pago inválida."}, status=status.HTTP_401_UNAUTHORIZED)
-
-    payload = request.data if isinstance(request.data, dict) else {}
-    topic = request.query_params.get("topic") or request.query_params.get("type") or payload.get("type")
-    payment_id = request.query_params.get("data.id") or request.query_params.get("id")
-
-    data = payload.get("data") or {}
-    if isinstance(data, dict):
-        payment_id = payment_id or data.get("id")
-
-    if topic not in {"payment", "payments"} or not payment_id:
-        return Response({"received": True})
-
-    try:
-        payment_data = get_payment(payment_id)
-        cobranca = apply_payment_update(payment_data)
-    except MercadoPagoError as exc:
-        return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-
-    return Response({"received": True, "cobranca": cobranca.id if cobranca else None})
-
-
-@api_view(["POST"])
-@permission_classes([AllowAny])
-def mercado_pago_retorno(request):
-    payment_id = (
-        request.data.get("payment_id")
-        or request.data.get("collection_id")
-        or request.data.get("id")
-    )
-
-    if not payment_id:
-        return Response({"detail": "ID do pagamento não informado."}, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        payment_data = get_payment(payment_id)
-        cobranca = apply_payment_update(payment_data)
-    except MercadoPagoError as exc:
-        return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
-
-    gabinete = cobranca.gabinete if cobranca else None
-    return Response({
-        "received": True,
-        "payment_status": payment_data.get("status"),
-        "cobranca": cobranca.id if cobranca else None,
-        "cobranca_status": cobranca.status if cobranca else None,
-        "gabinete": gabinete.id if gabinete else None,
-        "licenca_ativa": gabinete.licenca_ativa if gabinete else False,
-        "fim_licenca": gabinete.fim_licenca if gabinete else None,
-    })

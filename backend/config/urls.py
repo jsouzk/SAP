@@ -4,7 +4,7 @@ from django.conf.urls.static import static
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from apps.assinaturas.views import CobrancaViewSet, GabineteViewSet, mercado_pago_retorno, mercado_pago_webhook, minha_assinatura, saas_overview
+from apps.assinaturas.views import CobrancaViewSet, GabineteViewSet, minha_assinatura, saas_overview
 from apps.atendimentos.views import AtendimentoViewSet
 from apps.core.views import AnexoViewSet, AuditLogViewSet, ComentarioViewSet, busca_global, dashboard, expirar_licencas, exportacao_gabinete, historico, notificacoes, pendencias, relatorios
 from apps.encaminhamentos.views import EncaminhamentoViewSet
@@ -32,8 +32,6 @@ urlpatterns = [
     path("api/notificacoes/", notificacoes, name="notificacoes"),
     path("api/admin-saas/overview/", saas_overview, name="saas_overview"),
     path("api/minha-assinatura/", minha_assinatura, name="minha_assinatura"),
-    path("api/mercado-pago/webhook/", mercado_pago_webhook, name="mercado_pago_webhook"),
-    path("api/mercado-pago/retorno/", mercado_pago_retorno, name="mercado_pago_retorno"),
     path("api/historico/", historico, name="historico"),
     path("api/pendencias/", pendencias, name="pendencias"),
     path("api/busca-global/", busca_global, name="busca_global"),

@@ -24,13 +24,3 @@ services:
         sync: false
       - key: BACKEND_URL
         sync: false
-      - key: MERCADO_PAGO_ACCESS_TOKEN
-        sync: false
-      - key: MERCADO_PAGO_PUBLIC_KEY
-        sync: false
-      - key: MERCADO_PAGO_WEBHOOK_URL
-        sync: false
-      - key: MERCADO_PAGO_WEBHOOK_SECRET
-        sync: false
-      - key: MERCADO_PAGO_RETURN_URL
-        sync: false
