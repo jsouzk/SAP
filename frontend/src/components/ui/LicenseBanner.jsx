@@ -5,11 +5,12 @@ import { useAuth } from "../../context/AuthContext";
 
 export default function LicenseBanner() {
   const { user } = useAuth();
+  const isPlatformAdmin = Boolean(user?.is_platform_admin || user?.is_superuser);
   const days = user?.gabinete_dias_restantes;
   const inactive = user?.gabinete_licenca_ativa === false;
   const nearDue = Number.isFinite(Number(days)) && Number(days) <= 5;
 
-  if (!inactive && !nearDue) return null;
+  if (isPlatformAdmin || (!inactive && !nearDue)) return null;
 
   return (
     <div className={inactive ? "mb-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800" : "mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900"}>

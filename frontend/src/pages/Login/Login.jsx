@@ -27,7 +27,7 @@ export default function Login() {
     } catch (error) {
       setShowHelp(true);
       if (!error.response) {
-        toast.error("Não foi possível conectar ao backend em http://localhost:8000.");
+        toast.error("Não foi possível conectar ao servidor.");
         return;
       }
       if (error.response.status === 401) {
@@ -78,7 +78,7 @@ export default function Login() {
               </div>
             </div>
 
-            {showHelp && <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">Confira o email, a senha e se o backend está rodando em http://localhost:8000.</p>}
+            {showHelp && <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">Confira o email e a senha. Se o problema continuar, verifique se o servidor está disponível.</p>}
 
             <button className="btn-primary mt-6 w-full" disabled={loading}>
               {loading ? "Entrando..." : "Entrar"}

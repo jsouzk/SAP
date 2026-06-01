@@ -50,7 +50,9 @@ export default function Header({ title, onMenu }) {
     navigate(item.url || "/pendencias");
   };
 
-  const licenseWarning = user?.gabinete_licenca_ativa === false || Number(user?.gabinete_dias_restantes) <= 5;
+  const isPlatformAdmin = Boolean(user?.is_platform_admin || user?.is_superuser);
+  const licenseWarning = !isPlatformAdmin && (user?.gabinete_licenca_ativa === false || Number(user?.gabinete_dias_restantes) <= 5);
+  const subtitle = isPlatformAdmin ? "Administração da plataforma" : user?.gabinete_nome || "Sistema de Atendimento Parlamentar";
 
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 shadow-sm shadow-slate-900/5 backdrop-blur-xl">
@@ -62,7 +64,7 @@ export default function Header({ title, onMenu }) {
           <div className="min-w-0">
             <h1 className="truncate text-xl font-black tracking-tight text-ink-950 sm:text-2xl">{title}</h1>
             <p className={licenseWarning ? "truncate text-xs font-bold text-amber-700" : "truncate text-xs font-semibold text-slate-500"}>
-              {user?.gabinete_mensagem_licenca || user?.gabinete_nome || "Sistema de Atendimento Parlamentar"}
+              {subtitle}
             </p>
           </div>
         </div>
