@@ -8,9 +8,21 @@ const api = axios.create({
 });
 
 let refreshPromise = null;
+let csrfToken = window.sessionStorage.getItem("sap_csrf_token");
 
 function clearSession() {
+  csrfToken = null;
+  window.sessionStorage.removeItem("sap_csrf_token");
   window.dispatchEvent(new Event("sap:auth-expired"));
+}
+
+function rememberCsrfToken(response) {
+  const nextToken = response?.data?.csrfToken;
+  if (nextToken) {
+    csrfToken = nextToken;
+    window.sessionStorage.setItem("sap_csrf_token", nextToken);
+  }
+  return response;
 }
 
 function getCookie(name) {
@@ -23,16 +35,18 @@ function getCookie(name) {
 api.interceptors.request.use((config) => {
   const method = (config.method || "get").toUpperCase();
   if (!["GET", "HEAD", "OPTIONS", "TRACE"].includes(method)) {
-    const csrfToken = getCookie("csrftoken");
-    if (csrfToken) {
-      config.headers["X-CSRFToken"] = decodeURIComponent(csrfToken);
+    const cookieToken = getCookie("csrftoken");
+    const token = csrfToken || (cookieToken ? decodeURIComponent(cookieToken) : null);
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers["X-CSRFToken"] = token;
     }
   }
   return config;
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => rememberCsrfToken(response),
   async (error) => {
     const originalRequest = error.config;
     const isRefreshRequest = originalRequest?.url?.includes("/auth/token/refresh/");

@@ -20,6 +20,14 @@ services:
         sync: false
       - key: CSRF_TRUSTED_ORIGINS
         sync: false
+      - key: JWT_COOKIE_SAMESITE
+        value: None
+      - key: CSRF_COOKIE_SAMESITE
+        value: None
+      - key: JWT_COOKIE_SECURE
+        value: "True"
+      - key: CSRF_COOKIE_SECURE
+        value: "True"
       - key: FRONTEND_URL
         sync: false
       - key: BACKEND_URL

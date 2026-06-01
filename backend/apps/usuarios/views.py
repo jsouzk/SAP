@@ -49,6 +49,8 @@ def set_auth_cookies(response, access=None, refresh=None):
 
 def set_csrf_cookie(request, response):
     token = get_token(request)
+    if isinstance(response.data, dict):
+        response.data["csrfToken"] = token
     response.set_cookie(
         settings.CSRF_COOKIE_NAME,
         token,

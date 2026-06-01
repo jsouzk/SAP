@@ -172,5 +172,6 @@ JWT_AUTH_COOKIE = config("JWT_AUTH_COOKIE", default="sap_access_token")
 JWT_REFRESH_COOKIE = config("JWT_REFRESH_COOKIE", default="sap_refresh_token")
 JWT_COOKIE_SECURE = config_bool("JWT_COOKIE_SECURE", default=not DEBUG)
 JWT_COOKIE_HTTP_ONLY = True
-JWT_COOKIE_SAMESITE = config("JWT_COOKIE_SAMESITE", default="Lax")
+JWT_COOKIE_SAMESITE = config("JWT_COOKIE_SAMESITE", default="Lax" if DEBUG else "None")
+CSRF_COOKIE_SAMESITE = config("CSRF_COOKIE_SAMESITE", default="Lax" if DEBUG else "None")
 CORS_ALLOW_CREDENTIALS = True
