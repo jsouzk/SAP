@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
@@ -19,6 +21,8 @@ from apps.core.models import AuditLog
 from .models import Usuario
 from .authentication import enforce_csrf
 from .serializers import CustomTokenObtainPairSerializer, PasswordResetConfirmSerializer, PasswordResetRequestSerializer, UsuarioSerializer
+
+logger = logging.getLogger(__name__)
 
 
 def _cookie_kwargs(max_age):
@@ -141,18 +145,30 @@ class PasswordResetRequestView(APIView):
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
             reset_url = f"{settings.FRONTEND_URL.rstrip('/')}/redefinir-senha/{uid}/{token}"
-            send_mail(
-                subject="Recuperacao de senha",
-                message=(
-                    f"Ola, {user.nome}.\n\n"
-                    "Recebemos uma solicitacao para redefinir sua senha no Sistema de Atendimento Parlamentar.\n"
-                    f"Acesse o link abaixo para criar uma nova senha:\n\n{reset_url}\n\n"
-                    "Se voce nao solicitou essa alteracao, ignore este email."
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False,
+            message = (
+                f"Ola, {user.nome}.\n\n"
+                "Recebemos uma solicitacao para redefinir sua senha no Sistema de Atendimento Parlamentar.\n"
+                f"Acesse o link abaixo para criar uma nova senha:\n\n{reset_url}\n\n"
+                "Se voce nao solicitou essa alteracao, ignore este email."
             )
+            html_message = (
+                f"<p>Ola, {user.nome}.</p>"
+                "<p>Recebemos uma solicitacao para redefinir sua senha no Sistema de Atendimento Parlamentar.</p>"
+                f'<p><a href="{reset_url}">Clique aqui para criar uma nova senha</a>.</p>'
+                "<p>Se voce nao solicitou essa alteracao, ignore este email.</p>"
+            )
+            try:
+                send_mail(
+                    subject="Recuperacao de senha",
+                    message=message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                    fail_silently=False,
+                    html_message=html_message,
+                )
+            except Exception:
+                logger.exception("Falha ao enviar email de recuperacao de senha para usuario_id=%s", user.id)
+                return Response({"detail": "Nao foi possivel enviar o email de recuperacao agora. Tente novamente em instantes."}, status=503)
 
         return Response({"detail": "Se o email estiver cadastrado, enviaremos um link de recuperacao."})
 

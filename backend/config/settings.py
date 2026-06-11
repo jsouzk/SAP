@@ -152,15 +152,25 @@ CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", default="http://localhost:
 CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="http://localhost:5173,http://127.0.0.1:5173").split(",")
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
 BACKEND_URL = config("BACKEND_URL", default="http://localhost:8000")
-EMAIL_BACKEND = config("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend")
+RESEND_API_KEY = config("RESEND_API_KEY", default="")
+DEFAULT_EMAIL_BACKEND = (
+    "anymail.backends.resend.EmailBackend"
+    if RESEND_API_KEY
+    else ("django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend")
+)
+DEFAULT_FROM_EMAIL_VALUE = (
+    "Sistema de Atendimento Parlamentar <onboarding@resend.dev>"
+    if RESEND_API_KEY
+    else "Sistema de Atendimento Parlamentar <no-reply@localhost>"
+)
+EMAIL_BACKEND = config("EMAIL_BACKEND", default=DEFAULT_EMAIL_BACKEND)
 EMAIL_HOST = config("EMAIL_HOST", default="localhost")
 EMAIL_PORT = int(config("EMAIL_PORT", default="25"))
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = config_bool("EMAIL_USE_TLS", default=False)
 EMAIL_USE_SSL = config_bool("EMAIL_USE_SSL", default=False)
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="Sistema de Atendimento Parlamentar <no-reply@localhost>")
-RESEND_API_KEY = config("RESEND_API_KEY", default="")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default=DEFAULT_FROM_EMAIL_VALUE)
 ANYMAIL = {
     "RESEND_API_KEY": RESEND_API_KEY,
 }
