@@ -114,3 +114,77 @@ class AtendimentoApiTests(TestCase):
         self.assertFalse(atendimento.ativo)
         self.assertEqual(atendimento.excluido_por, self.user)
         self.assertTrue(AuditLog.objects.filter(action=AuditLog.Action.DELETE, model_name="atendimentos.Atendimento").exists())
+
+    def test_acoes_de_pendencia_resolvem_atribuem_e_adiam(self):
+        atendimento = Atendimento.objects.create(
+            gabinete=self.gabinete,
+            nome="Maria",
+            endereco="Rua A",
+            telefone="(92) 99999-8888",
+            data_atendimento=timezone.localdate(),
+            quem_atendeu="Atendente",
+            assunto="Educação",
+            status=Atendimento.Status.EM_ANDAMENTO,
+            prazo_retorno=timezone.localdate(),
+        )
+
+        response = self.client.post(reverse("pendencia_atribuir_atendimento", args=[atendimento.id]), {"responsavel_retorno": "Ana"})
+        self.assertEqual(response.status_code, 200)
+        atendimento.refresh_from_db()
+        self.assertEqual(atendimento.responsavel_retorno, "Ana")
+
+        novo_prazo = timezone.localdate() + timedelta(days=5)
+        response = self.client.post(reverse("pendencia_adiar_atendimento", args=[atendimento.id]), {"prazo_retorno": novo_prazo.isoformat()})
+        self.assertEqual(response.status_code, 200)
+        atendimento.refresh_from_db()
+        self.assertEqual(atendimento.prazo_retorno, novo_prazo)
+
+        response = self.client.post(reverse("pendencia_resolver_atendimento", args=[atendimento.id]))
+        self.assertEqual(response.status_code, 200)
+        atendimento.refresh_from_db()
+        self.assertEqual(atendimento.status, Atendimento.Status.RESOLVIDO)
+
+    def test_acoes_de_pendencia_nao_alteram_outro_gabinete(self):
+        atendimento = Atendimento.objects.create(
+            gabinete=self.outro_gabinete,
+            nome="Joao",
+            endereco="Rua B",
+            telefone="(92) 98888-7777",
+            data_atendimento=timezone.localdate(),
+            quem_atendeu="Atendente",
+            assunto="Saúde",
+            status=Atendimento.Status.EM_ANDAMENTO,
+        )
+
+        response = self.client.post(reverse("pendencia_resolver_atendimento", args=[atendimento.id]))
+
+        self.assertEqual(response.status_code, 404)
+        atendimento.refresh_from_db()
+        self.assertEqual(atendimento.status, Atendimento.Status.EM_ANDAMENTO)
+
+    def test_busca_global_inclui_encaminhamentos_e_oficios(self):
+        atendimento = Atendimento.objects.create(
+            gabinete=self.gabinete,
+            nome="Maria",
+            endereco="Rua A",
+            telefone="(92) 99999-8888",
+            data_atendimento=timezone.localdate(),
+            quem_atendeu="Atendente",
+            assunto="Educação",
+        )
+        encaminhamento = Encaminhamento.objects.create(
+            atendimento=atendimento,
+            vereador="Vereador",
+            secretaria_destino="Secretaria de Educação",
+            responsavel="Ana",
+            descricao="Solicitar vaga em creche",
+            data=timezone.localdate(),
+        )
+        encaminhamento.oficios.create()
+
+        response = self.client.get(reverse("busca_global"), {"q": "Educação"})
+
+        self.assertEqual(response.status_code, 200)
+        tipos = {item["tipo"] for item in response.data["results"]}
+        self.assertIn("encaminhamento", tipos)
+        self.assertIn("oficio", tipos)

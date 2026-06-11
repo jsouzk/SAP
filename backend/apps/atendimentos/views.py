@@ -66,4 +66,5 @@ class AtendimentoViewSet(AuditModelViewSetMixin, ModelViewSet):
         writer.writerow(["nome", "telefone", "assunto", "status", "prazo_retorno", "responsavel_retorno", "data_atendimento"])
         for item in self.filter_queryset(self.get_queryset()):
             writer.writerow([item.nome, item.telefone, item.assunto, item.status, item.prazo_retorno or "", item.responsavel_retorno, item.data_atendimento])
+        write_audit_log(request, AuditLog.Action.EXPORT, request.user, after={"filename": "atendimentos.csv"})
         return response

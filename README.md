@@ -116,6 +116,11 @@ GET  /api/encaminhamentos/
 GET  /api/oficios/
 GET  /api/relatorios/
 GET  /api/pendencias/
+POST /api/pendencias/atendimentos/<id>/resolver/
+POST /api/pendencias/atendimentos/<id>/atribuir/
+POST /api/pendencias/atendimentos/<id>/adiar/
+GET  /api/busca-global/?q=<termo>
+GET  /api/anexos/<id>/download/
 ```
 
 Todos os endpoints administrativos usam JWT ou cookies HTTP-only configurados pela API.
@@ -183,3 +188,18 @@ npm run build
 3. Acesse o Admin SaaS e cadastre o primeiro gabinete.
 4. Vincule usuarios aos gabinetes.
 5. Ative teste ou renove manualmente a licenca do gabinete.
+
+## Qualidade
+
+O projeto possui workflow de CI em `.github/workflows/ci.yml` com:
+
+```bash
+cd backend
+python manage.py test
+
+cd ../frontend
+npm run lint
+npm run build
+```
+
+Durante testes, o backend usa SQLite em memoria e hasher rapido de senha para reduzir o tempo de execucao local e no CI.

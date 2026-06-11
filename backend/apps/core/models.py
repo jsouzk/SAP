@@ -7,6 +7,10 @@ class AuditLog(models.Model):
         CREATE = "create", "Criado"
         UPDATE = "update", "Atualizado"
         DELETE = "delete", "Excluído"
+        LOGIN = "login", "Login"
+        LOGOUT = "logout", "Logout"
+        EXPORT = "export", "Exportação"
+        DOWNLOAD = "download", "Download"
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     action = models.CharField(max_length=20, choices=Action.choices)

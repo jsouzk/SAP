@@ -32,3 +32,9 @@ services:
         sync: false
       - key: BACKEND_URL
         sync: false
+      - key: EMAIL_BACKEND
+        value: anymail.backends.resend.EmailBackend
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false

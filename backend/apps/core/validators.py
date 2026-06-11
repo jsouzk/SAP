@@ -25,6 +25,11 @@ def format_phone(value=""):
     return value.strip()
 
 
+def is_valid_phone(value=""):
+    digits = only_digits(value)
+    return len(digits) in {10, 11}
+
+
 def is_valid_cpf(value=""):
     digits = only_digits(value)
     if len(digits) != 11 or len(set(digits)) == 1:

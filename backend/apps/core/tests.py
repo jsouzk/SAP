@@ -1,12 +1,13 @@
 from datetime import timedelta
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework.test import APIClient
 
 from apps.assinaturas.models import Gabinete
-from apps.core.models import Comentario
+from apps.core.models import Anexo, AuditLog, Comentario
 from apps.pessoas.models import PessoaAtendida
 from apps.usuarios.models import Usuario
 
@@ -86,3 +87,19 @@ class ComentarioApiTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("objeto_id", response.data)
         self.assertEqual(Comentario.objects.count(), 0)
+
+    def test_download_anexo_grava_auditoria(self):
+        self.client.force_authenticate(self.user)
+        anexo = Anexo.objects.create(
+            gabinete=self.gabinete,
+            tipo_entidade=Anexo.TipoEntidade.PESSOA,
+            objeto_id=self.pessoa.id,
+            arquivo=SimpleUploadedFile("documento.pdf", b"conteudo", content_type="application/pdf"),
+            nome_original="documento.pdf",
+            enviado_por=self.user,
+        )
+
+        response = self.client.get(reverse("anexos-download", args=[anexo.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(AuditLog.objects.filter(action=AuditLog.Action.DOWNLOAD, model_name="core.Anexo", object_id=str(anexo.id)).exists())

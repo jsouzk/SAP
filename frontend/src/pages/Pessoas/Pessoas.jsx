@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import Actions from "../../components/ui/Actions";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import EmptyState from "../../components/ui/EmptyState";
+import EntityActivity from "../../components/ui/EntityActivity";
 import FormField from "../../components/ui/FormField";
 import LoadingState from "../../components/ui/LoadingState";
 import Modal from "../../components/ui/Modal";
@@ -180,6 +181,7 @@ export default function Pessoas() {
                 ))}
               </div>
             </section>
+            <EntityActivity tipo="pessoa" objetoId={viewing.id} />
           </div>
         )}
       </Modal>

@@ -1,3 +1,5 @@
+import sys
+import tempfile
 from datetime import timedelta
 from pathlib import Path
 
@@ -24,7 +26,7 @@ SECRET_KEY = config("SECRET_KEY", default="dev-secret-key-change-me")
 DEBUG = config_bool("DEBUG", default=True)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")
 
-if not DEBUG and SECRET_KEY == "dev-secret-key-change-me":
+if not DEBUG and "test" not in sys.argv and SECRET_KEY == "dev-secret-key-change-me":
     raise ImproperlyConfigured("Configure SECRET_KEY em producao.")
 
 INSTALLED_APPS = [
@@ -34,6 +36,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "anymail",
     "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt",
@@ -94,6 +97,16 @@ else:
         }
     }
 
+if "test" in sys.argv:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
+        }
+    }
+    PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+    EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+
 AUTH_USER_MODEL = "usuarios.Usuario"
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -126,6 +139,9 @@ ANEXO_ALLOWED_CONTENT_TYPES = {
 IMPORTACAO_MAX_UPLOAD_SIZE = int(config("IMPORTACAO_MAX_UPLOAD_SIZE", default=str(2 * 1024 * 1024)))
 IMPORTACAO_MAX_LINHAS = int(config("IMPORTACAO_MAX_LINHAS", default="1000"))
 STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
@@ -144,6 +160,10 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = config_bool("EMAIL_USE_TLS", default=False)
 EMAIL_USE_SSL = config_bool("EMAIL_USE_SSL", default=False)
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="Sistema de Atendimento Parlamentar <no-reply@localhost>")
+RESEND_API_KEY = config("RESEND_API_KEY", default="")
+ANYMAIL = {
+    "RESEND_API_KEY": RESEND_API_KEY,
+}
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = config_bool("SECURE_SSL_REDIRECT", default=not DEBUG)
 SESSION_COOKIE_SECURE = config_bool("SESSION_COOKIE_SECURE", default=not DEBUG)
@@ -175,3 +195,12 @@ JWT_COOKIE_HTTP_ONLY = True
 JWT_COOKIE_SAMESITE = config("JWT_COOKIE_SAMESITE", default="Lax" if DEBUG else "None")
 CSRF_COOKIE_SAMESITE = config("CSRF_COOKIE_SAMESITE", default="Lax" if DEBUG else "None")
 CORS_ALLOW_CREDENTIALS = True
+
+if "test" in sys.argv:
+    EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+    MEDIA_ROOT = Path(tempfile.gettempdir()) / "sap-test-media"
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    JWT_COOKIE_SECURE = False
+    SECURE_HSTS_SECONDS = 0

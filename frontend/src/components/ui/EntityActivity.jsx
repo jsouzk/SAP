@@ -4,6 +4,16 @@ import toast from "react-hot-toast";
 import { anexosApi, comentariosApi } from "../../services/resources";
 import { formatDateTime } from "../../utils/formatters";
 
+function getApiErrorMessage(error, fallback) {
+  const data = error?.response?.data;
+  if (typeof data?.detail === "string") return data.detail;
+  if (Array.isArray(data?.objeto_id) && data.objeto_id[0]) return data.objeto_id[0];
+  if (Array.isArray(data?.arquivo) && data.arquivo[0]) return data.arquivo[0];
+  if (Array.isArray(data?.texto) && data.texto[0]) return data.texto[0];
+  if (typeof data === "string") return data;
+  return fallback;
+}
+
 export default function EntityActivity({ tipo, objetoId }) {
   const [comentarios, setComentarios] = useState([]);
   const [anexos, setAnexos] = useState([]);
@@ -23,7 +33,9 @@ export default function EntityActivity({ tipo, objetoId }) {
   };
 
   useEffect(() => {
-    load().catch(() => {});
+    load().catch((error) => {
+      toast.error(getApiErrorMessage(error, "Não foi possível carregar comentários e anexos."));
+    });
   }, [tipo, objetoId]);
 
   const addComentario = async (event) => {
@@ -32,7 +44,7 @@ export default function EntityActivity({ tipo, objetoId }) {
     await toast.promise(comentariosApi.create({ tipo_entidade: tipo, objeto_id: objetoId, texto }), {
       loading: "Salvando comentário...",
       success: "Comentário registrado.",
-      error: "Não foi possível salvar o comentário.",
+      error: (error) => getApiErrorMessage(error, "Não foi possível salvar o comentário."),
     });
     setTexto("");
     await load();
@@ -49,7 +61,7 @@ export default function EntityActivity({ tipo, objetoId }) {
     await toast.promise(anexosApi.create(payload), {
       loading: "Enviando anexo...",
       success: "Anexo enviado.",
-      error: "Não foi possível enviar o anexo.",
+      error: (error) => getApiErrorMessage(error, "Não foi possível enviar o anexo."),
     });
     setArquivo(null);
     setDescricao("");
@@ -85,7 +97,7 @@ export default function EntityActivity({ tipo, objetoId }) {
         <div className="mt-4 space-y-3">
           {anexos.map((anexo) => (
             <article className="rounded-lg border border-slate-100 bg-slate-50 p-3 text-sm" key={anexo.id}>
-              <a className="font-bold text-brand-700 hover:underline" href={anexo.arquivo_url} target="_blank" rel="noreferrer">{anexo.nome_original || "Abrir anexo"}</a>
+              <a className="font-bold text-brand-700 hover:underline" href={anexosApi.downloadUrl(anexo.id)} target="_blank" rel="noreferrer">{anexo.nome_original || "Baixar anexo"}</a>
               <p className="mt-1 text-slate-600">{anexo.descricao || "-"}</p>
               <p className="mt-2 text-xs font-semibold text-slate-500">{anexo.enviado_por_nome || "Usuário"} - {formatDateTime(anexo.criado_em)}</p>
             </article>

@@ -30,6 +30,7 @@ function downloadCsv(data) {
     ["Atendimentos por assunto", data.por_assunto],
     ["Produtividade por usuário", data.por_usuario],
     ["Encaminhamentos por secretaria", data.por_secretaria],
+    ["Pendências por responsável", data.pendencias_por_responsavel],
   ];
   const rows = [];
   sections.forEach(([title, items]) => {
@@ -57,8 +58,9 @@ function exportPdf(data, filters) {
   pdf.setFontSize(10);
   pdf.text(`Período: ${filters.data_inicio || "início"} a ${filters.data_fim || "hoje"}`, 20, 30);
   pdf.text(`Atendimentos: ${data.totais?.atendimentos || 0} | Encaminhamentos: ${data.totais?.encaminhamentos || 0} | Ofícios: ${data.totais?.oficios || 0}`, 20, 38);
+  pdf.text(`Pendências abertas: ${data.totais?.pendencias_abertas || 0} | Tempo médio de resolução: ${data.totais?.dias_resolucao_medio || 0} dia(s)`, 20, 44);
   let y = 52;
-  [["Assuntos", data.por_assunto], ["Bairros", data.por_bairro], ["Secretarias", data.por_secretaria]].forEach(([title, items]) => {
+  [["Assuntos", data.por_assunto], ["Bairros", data.por_bairro], ["Secretarias", data.por_secretaria], ["Pendências por responsável", data.pendencias_por_responsavel]].forEach(([title, items]) => {
     pdf.setFont("helvetica", "bold");
     pdf.text(title, 20, y);
     y += 7;
@@ -107,10 +109,12 @@ export default function Relatorios() {
 
       {loading ? <LoadingState /> : (
         <>
-          <div className="mb-5 grid gap-4 sm:grid-cols-3">
+          <div className="mb-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <section className="panel p-5"><p className="text-sm font-bold text-slate-500">Atendimentos</p><p className="mt-1 text-3xl font-black">{data?.totais?.atendimentos || 0}</p></section>
             <section className="panel p-5"><p className="text-sm font-bold text-slate-500">Encaminhamentos</p><p className="mt-1 text-3xl font-black">{data?.totais?.encaminhamentos || 0}</p></section>
             <section className="panel p-5"><p className="text-sm font-bold text-slate-500">Ofícios</p><p className="mt-1 text-3xl font-black">{data?.totais?.oficios || 0}</p></section>
+            <section className="panel p-5"><p className="text-sm font-bold text-slate-500">Pendências abertas</p><p className="mt-1 text-3xl font-black">{data?.totais?.pendencias_abertas || 0}</p></section>
+            <section className="panel p-5"><p className="text-sm font-bold text-slate-500">Média de resolução</p><p className="mt-1 text-3xl font-black">{data?.totais?.dias_resolucao_medio || 0}d</p></section>
           </div>
 
           <div className="mb-5 flex justify-end gap-2">
@@ -118,11 +122,12 @@ export default function Relatorios() {
             <button className="btn-primary" onClick={() => exportPdf(data, filters)}><FileText size={16} />PDF</button>
           </div>
 
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
             <Ranking title="Por assunto" items={data?.por_assunto} />
             <Ranking title="Por bairro" items={data?.por_bairro} />
             <Ranking title="Por secretaria" items={data?.por_secretaria} />
             <Ranking title="Por usuário" items={data?.por_usuario} />
+            <Ranking title="Pendências por responsável" items={data?.pendencias_por_responsavel} />
           </div>
         </>
       )}

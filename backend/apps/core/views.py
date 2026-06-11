@@ -4,12 +4,14 @@ import io
 import zipfile
 from datetime import timedelta
 
+from django.db.models import Q
+from django.http import FileResponse
 from django.http import HttpResponse
 from django.db.models import Count
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 from django.utils.dateparse import parse_date
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
@@ -24,6 +26,7 @@ from apps.oficios.models import Oficio
 from apps.pessoas.models import PessoaAtendida
 from apps.assinaturas.models import Cobranca
 from apps.usuarios.models import Usuario
+from .audit import write_audit_log, snapshot
 from .models import Anexo, AuditLog, Comentario
 from .serializers import AnexoSerializer, AuditLogSerializer, ComentarioSerializer
 
@@ -251,17 +254,31 @@ def relatorios(request):
         .order_by("-total")[:20]
     )
     por_secretaria = list(encaminhamentos_qs.values("secretaria_destino").annotate(total=Count("id")).order_by("-total")[:20])
+    pendencias_por_responsavel = list(
+        atendimentos_qs.exclude(status__in=["resolvido", "arquivado"])
+        .values("responsavel_retorno")
+        .annotate(total=Count("id"))
+        .order_by("-total")[:20]
+    )
+    resolvidos = [
+        max((item.atualizado_em.date() - item.data_atendimento).days, 0)
+        for item in atendimentos_qs.filter(status="resolvido").only("data_atendimento", "atualizado_em")
+        if item.data_atendimento and item.atualizado_em
+    ]
 
     return Response({
         "totais": {
             "atendimentos": atendimentos_qs.count(),
             "encaminhamentos": encaminhamentos_qs.count(),
             "oficios": oficios_qs.count(),
+            "pendencias_abertas": atendimentos_qs.exclude(status__in=["resolvido", "arquivado"]).count(),
+            "dias_resolucao_medio": round(sum(resolvidos) / len(resolvidos), 1) if resolvidos else 0,
         },
         "por_bairro": [{"label": item["pessoa__bairro"], "total": item["total"]} for item in por_bairro],
         "por_assunto": [{"label": item["assunto"], "total": item["total"]} for item in por_assunto],
         "por_usuario": [{"label": item["criado_por__nome"], "total": item["total"]} for item in por_usuario],
         "por_secretaria": [{"label": item["secretaria_destino"], "total": item["total"]} for item in por_secretaria],
+        "pendencias_por_responsavel": [{"label": item["responsavel_retorno"] or "Sem responsável", "total": item["total"]} for item in pendencias_por_responsavel],
         "serie_mensal": monthly_series(atendimentos_qs, encaminhamentos_qs, oficios_qs),
     })
 
@@ -329,6 +346,66 @@ def pendencias(request):
     return Response(pendencias_payload(request))
 
 
+def get_scoped_atendimento_or_404(request, pk):
+    queryset = scoped(Atendimento.objects.filter(ativo=True), request)
+    return queryset.get(pk=pk)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, HasActiveLicense])
+def pendencia_resolver_atendimento(request, pk):
+    try:
+        atendimento = get_scoped_atendimento_or_404(request, pk)
+    except Atendimento.DoesNotExist:
+        return Response({"detail": "Atendimento não encontrado."}, status=404)
+
+    before = snapshot(atendimento)
+    atendimento.status = Atendimento.Status.RESOLVIDO
+    atendimento.save(update_fields=["status", "atualizado_em"])
+    write_audit_log(request, AuditLog.Action.UPDATE, atendimento, before=before, after=snapshot(atendimento))
+    return Response({"detail": "Atendimento resolvido."})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, HasActiveLicense])
+def pendencia_atribuir_atendimento(request, pk):
+    responsavel = (request.data.get("responsavel_retorno") or "").strip()
+    if not responsavel:
+        return Response({"responsavel_retorno": ["Informe o responsável."]}, status=400)
+
+    try:
+        atendimento = get_scoped_atendimento_or_404(request, pk)
+    except Atendimento.DoesNotExist:
+        return Response({"detail": "Atendimento não encontrado."}, status=404)
+
+    before = snapshot(atendimento)
+    atendimento.responsavel_retorno = responsavel
+    atendimento.save(update_fields=["responsavel_retorno", "atualizado_em"])
+    write_audit_log(request, AuditLog.Action.UPDATE, atendimento, before=before, after=snapshot(atendimento))
+    return Response({"detail": "Responsável atualizado."})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, HasActiveLicense])
+def pendencia_adiar_atendimento(request, pk):
+    prazo = parse_date(request.data.get("prazo_retorno") or "")
+    if not prazo:
+        return Response({"prazo_retorno": ["Informe uma data válida."]}, status=400)
+
+    try:
+        atendimento = get_scoped_atendimento_or_404(request, pk)
+    except Atendimento.DoesNotExist:
+        return Response({"detail": "Atendimento não encontrado."}, status=404)
+
+    before = snapshot(atendimento)
+    atendimento.prazo_retorno = prazo
+    if atendimento.status == Atendimento.Status.ARQUIVADO:
+        atendimento.status = Atendimento.Status.EM_ANDAMENTO
+    atendimento.save(update_fields=["prazo_retorno", "status", "atualizado_em"])
+    write_audit_log(request, AuditLog.Action.UPDATE, atendimento, before=before, after=snapshot(atendimento))
+    return Response({"detail": "Prazo atualizado."})
+
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, HasActiveLicense])
 def busca_global(request):
@@ -337,28 +414,44 @@ def busca_global(request):
         return Response({"results": []})
 
     pessoas_qs = scoped(PessoaAtendida.objects.filter(ativo=True), request).filter(
-        nome__icontains=termo
-    ) | scoped(PessoaAtendida.objects.filter(ativo=True), request).filter(
-        cpf__icontains=termo
-    ) | scoped(PessoaAtendida.objects.filter(ativo=True), request).filter(
-        telefone__icontains=termo
+        Q(nome__icontains=termo) | Q(cpf__icontains=termo) | Q(telefone__icontains=termo) | Q(bairro__icontains=termo)
     )
     atendimentos_qs = scoped(Atendimento.objects.filter(ativo=True), request).filter(
-        nome__icontains=termo
-    ) | scoped(Atendimento.objects.filter(ativo=True), request).filter(
-        telefone__icontains=termo
-    ) | scoped(Atendimento.objects.filter(ativo=True), request).filter(
-        assunto__icontains=termo
+        Q(nome__icontains=termo) | Q(telefone__icontains=termo) | Q(assunto__icontains=termo) | Q(responsavel_retorno__icontains=termo)
     )
+    encaminhamentos_qs = scoped(
+        Encaminhamento.objects.filter(ativo=True).select_related("atendimento"),
+        request,
+        "atendimento__gabinete",
+    ).filter(
+        Q(secretaria_destino__icontains=termo) | Q(responsavel__icontains=termo) | Q(descricao__icontains=termo) | Q(atendimento__nome__icontains=termo)
+    )
+    oficios_qs = scoped(
+        Oficio.objects.filter(ativo=True).select_related("encaminhamento", "encaminhamento__atendimento"),
+        request,
+        "encaminhamento__atendimento__gabinete",
+    ).filter(
+        Q(numero__icontains=termo) | Q(conteudo__icontains=termo) | Q(encaminhamento__secretaria_destino__icontains=termo) | Q(encaminhamento__atendimento__nome__icontains=termo)
+    )
+    comentarios_qs = scoped(Comentario.objects.select_related("criado_por"), request).filter(texto__icontains=termo)
 
     results = [
-        {"tipo": "pessoa", "id": item.id, "titulo": item.nome, "descricao": item.cpf or item.telefone or item.bairro, "url": "/pessoas"}
+        {"tipo": "pessoa", "id": item.id, "titulo": item.nome, "descricao": item.cpf or item.telefone or item.bairro, "url": f"/pessoas?search={termo}"}
         for item in pessoas_qs.distinct()[:8]
     ] + [
-        {"tipo": "atendimento", "id": item.id, "titulo": item.nome, "descricao": item.assunto, "url": "/atendimentos"}
+        {"tipo": "atendimento", "id": item.id, "titulo": item.nome, "descricao": item.assunto, "url": f"/atendimentos?search={termo}"}
         for item in atendimentos_qs.distinct()[:8]
+    ] + [
+        {"tipo": "encaminhamento", "id": item.id, "titulo": item.secretaria_destino, "descricao": item.descricao[:120], "url": f"/encaminhamentos?search={termo}"}
+        for item in encaminhamentos_qs.distinct()[:6]
+    ] + [
+        {"tipo": "oficio", "id": item.id, "titulo": f"Ofício {item.numero}", "descricao": item.encaminhamento.secretaria_destino, "url": f"/oficios?search={termo}"}
+        for item in oficios_qs.distinct()[:6]
+    ] + [
+        {"tipo": "comentario", "id": item.id, "titulo": f"Comentário em {item.tipo_entidade}", "descricao": item.texto[:120], "url": "/historico"}
+        for item in comentarios_qs.distinct()[:4]
     ]
-    return Response({"results": results[:12]})
+    return Response({"results": results[:16]})
 
 
 @api_view(["POST"])
@@ -433,6 +526,7 @@ def exportacao_gabinete(request):
 
     response = HttpResponse(buffer.getvalue(), content_type="application/zip")
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    write_audit_log(request, AuditLog.Action.EXPORT, request.user, after={"filename": filename})
     return response
 
 
@@ -515,3 +609,9 @@ class AnexoViewSet(ModelViewSet):
             enviado_por=self.request.user,
             nome_original=getattr(arquivo, "name", ""),
         )
+
+    @action(detail=True, methods=["get"], url_path="download")
+    def download(self, request, pk=None):
+        anexo = self.get_object()
+        write_audit_log(request, AuditLog.Action.DOWNLOAD, anexo, after={"arquivo": anexo.nome_original or anexo.arquivo.name})
+        return FileResponse(anexo.arquivo.open("rb"), as_attachment=True, filename=anexo.nome_original or anexo.arquivo.name)

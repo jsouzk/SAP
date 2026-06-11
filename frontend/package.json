@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "email:test": "node --env-file=.env scripts/send-resend-test-email.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -19,7 +20,8 @@
     "react-dom": "^19.2.6",
     "react-hook-form": "^7.75.0",
     "react-hot-toast": "^2.6.0",
-    "react-router-dom": "^7.15.0"
+    "react-router-dom": "^7.15.0",
+    "resend": "^6.12.4"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",

@@ -69,9 +69,22 @@ gabinetesApi.suspender = async (id) => {
 };
 export const pessoasApi = createResource("/pessoas/");
 export const pendenciasApi = createResource("/pendencias/");
+pendenciasApi.resolverAtendimento = async (id) => {
+  const { data } = await api.post(`/pendencias/atendimentos/${id}/resolver/`);
+  return data;
+};
+pendenciasApi.atribuirAtendimento = async (id, responsavel_retorno) => {
+  const { data } = await api.post(`/pendencias/atendimentos/${id}/atribuir/`, { responsavel_retorno });
+  return data;
+};
+pendenciasApi.adiarAtendimento = async (id, prazo_retorno) => {
+  const { data } = await api.post(`/pendencias/atendimentos/${id}/adiar/`, { prazo_retorno });
+  return data;
+};
 export const auditoriaApi = createResource("/auditoria/");
 export const comentariosApi = createResource("/comentarios/");
 export const anexosApi = createResource("/anexos/");
+anexosApi.downloadUrl = (id) => `${api.defaults.baseURL}/anexos/${id}/download/`;
 export const minhaAssinaturaApi = {
   async get() {
     const { data } = await api.get("/minha-assinatura/");

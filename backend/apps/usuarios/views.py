@@ -82,6 +82,10 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         response = super().post(request, *args, **kwargs)
         access = response.data.pop("access", None)
         refresh = response.data.pop("refresh", None)
+        user_id = response.data.get("user", {}).get("id")
+        user = Usuario.objects.filter(pk=user_id).first()
+        if user:
+            write_audit_log(request, AuditLog.Action.LOGIN, user, after={"email": user.email})
         set_auth_cookies(response, access=access, refresh=refresh)
         set_csrf_cookie(request, response)
         return response
@@ -109,6 +113,8 @@ class LogoutView(APIView):
 
     def post(self, request):
         enforce_csrf(request)
+        if getattr(request.user, "is_authenticated", False):
+            write_audit_log(request, AuditLog.Action.LOGOUT, request.user, after={"email": request.user.email})
         return clear_auth_cookies(Response({"detail": "Sessao encerrada."}))
 
 

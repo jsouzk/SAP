@@ -45,6 +45,7 @@ class PessoaAtendidaViewSet(AuditModelViewSetMixin, ModelViewSet):
         writer.writerow(["nome", "cpf", "telefone", "email", "data_nascimento", "local_trabalho", "bairro", "cidade", "titulo_eleitor"])
         for pessoa in self.filter_queryset(self.get_queryset()):
             writer.writerow([pessoa.nome, pessoa.cpf, pessoa.telefone, pessoa.email, pessoa.data_nascimento or "", pessoa.local_trabalho, pessoa.bairro, pessoa.cidade, pessoa.titulo_eleitor])
+        write_audit_log(request, AuditLog.Action.EXPORT, request.user, after={"filename": "pessoas.csv"})
         return response
 
     @action(detail=False, methods=["post"], url_path="importar", parser_classes=[MultiPartParser])

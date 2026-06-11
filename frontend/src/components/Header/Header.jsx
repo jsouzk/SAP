@@ -1,5 +1,5 @@
 import { Bell, LogOut, Menu, Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
@@ -12,6 +12,15 @@ export default function Header({ title, onMenu }) {
   const [results, setResults] = useState([]);
   const [notifications, setNotifications] = useState({ count: 0, items: [] });
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const searchRef = useRef(null);
+
+  const resultLabels = {
+    pessoa: "Pessoa",
+    atendimento: "Atendimento",
+    encaminhamento: "Encaminhamento",
+    oficio: "Ofício",
+    comentario: "Comentário",
+  };
 
   useEffect(() => {
     if (query.trim().length < 2) {
@@ -24,6 +33,22 @@ export default function Header({ title, onMenu }) {
     }, 250);
     return () => window.clearTimeout(timeoutId);
   }, [query]);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        searchRef.current?.focus();
+      }
+      if (event.key === "Escape") {
+        setQuery("");
+        setResults([]);
+        setNotificationsOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -71,13 +96,14 @@ export default function Header({ title, onMenu }) {
 
         <div className="relative order-3 w-full md:order-none md:w-[360px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
-          <input className="input pl-9" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar pessoa, CPF, telefone ou atendimento" />
+          <input ref={searchRef} className="input pl-9 pr-16" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar pessoas, atendimentos, ofícios..." />
+          <span className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] font-black text-slate-400 md:block">Ctrl K</span>
           {results.length > 0 && (
             <div className="absolute left-0 right-0 top-12 z-30 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
               {results.map((item) => (
                 <button className="block w-full px-4 py-3 text-left text-sm hover:bg-slate-50" onClick={() => openResult(item)} key={`${item.tipo}-${item.id}`}>
                   <span className="font-bold text-slate-950">{item.titulo}</span>
-                  <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold uppercase text-slate-500">{item.tipo}</span>
+                  <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold uppercase text-slate-500">{resultLabels[item.tipo] || item.tipo}</span>
                   <p className="mt-1 text-xs text-slate-500">{item.descricao || "-"}</p>
                 </button>
               ))}

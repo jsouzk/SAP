@@ -6,7 +6,22 @@ from rest_framework.routers import DefaultRouter
 
 from apps.assinaturas.views import CobrancaViewSet, GabineteViewSet, minha_assinatura, saas_overview
 from apps.atendimentos.views import AtendimentoViewSet
-from apps.core.views import AnexoViewSet, AuditLogViewSet, ComentarioViewSet, busca_global, dashboard, expirar_licencas, exportacao_gabinete, historico, notificacoes, pendencias, relatorios
+from apps.core.views import (
+    AnexoViewSet,
+    AuditLogViewSet,
+    ComentarioViewSet,
+    busca_global,
+    dashboard,
+    expirar_licencas,
+    exportacao_gabinete,
+    historico,
+    notificacoes,
+    pendencia_adiar_atendimento,
+    pendencia_atribuir_atendimento,
+    pendencia_resolver_atendimento,
+    pendencias,
+    relatorios,
+)
 from apps.encaminhamentos.views import EncaminhamentoViewSet
 from apps.oficios.views import OficioViewSet
 from apps.pessoas.views import PessoaAtendidaViewSet
@@ -34,6 +49,9 @@ urlpatterns = [
     path("api/minha-assinatura/", minha_assinatura, name="minha_assinatura"),
     path("api/historico/", historico, name="historico"),
     path("api/pendencias/", pendencias, name="pendencias"),
+    path("api/pendencias/atendimentos/<int:pk>/resolver/", pendencia_resolver_atendimento, name="pendencia_resolver_atendimento"),
+    path("api/pendencias/atendimentos/<int:pk>/atribuir/", pendencia_atribuir_atendimento, name="pendencia_atribuir_atendimento"),
+    path("api/pendencias/atendimentos/<int:pk>/adiar/", pendencia_adiar_atendimento, name="pendencia_adiar_atendimento"),
     path("api/busca-global/", busca_global, name="busca_global"),
     path("api/licencas/expirar/", expirar_licencas, name="expirar_licencas"),
     path("api/exportacao-gabinete/", exportacao_gabinete, name="exportacao_gabinete"),

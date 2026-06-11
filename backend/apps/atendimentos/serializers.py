@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.assinaturas.permissions import is_platform_admin
-from apps.core.validators import format_phone
+from apps.core.validators import format_phone, is_valid_phone
 
 from .models import Atendimento
 
@@ -48,4 +48,6 @@ class AtendimentoSerializer(serializers.ModelSerializer):
         return pessoa
 
     def validate_telefone(self, telefone):
+        if telefone and not is_valid_phone(telefone):
+            raise serializers.ValidationError("Telefone deve ter DDD e 8 ou 9 dígitos.")
         return format_phone(telefone)

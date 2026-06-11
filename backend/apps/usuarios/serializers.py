@@ -6,7 +6,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.utils import timezone
 
-from apps.core.validators import format_cpf, format_phone, is_valid_cpf
+from apps.core.validators import format_cpf, format_phone, is_valid_cpf, is_valid_phone
 
 from .models import Usuario
 
@@ -64,6 +64,8 @@ class UsuarioSerializer(serializers.ModelSerializer):
         return format_cpf(cpf)
 
     def validate_telefone(self, telefone):
+        if telefone and not is_valid_phone(telefone):
+            raise serializers.ValidationError("Telefone deve ter DDD e 8 ou 9 dígitos.")
         return format_phone(telefone)
 
     def get_gabinete_dias_restantes(self, obj):
