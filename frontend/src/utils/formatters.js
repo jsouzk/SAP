@@ -43,7 +43,7 @@ export function buildBirthdayWhatsAppUrl({ nome = "", telefone = "" } = {}) {
 
   const phone = digits.length <= 11 ? `55${digits}` : digits;
   const firstName = nome.trim().split(/\s+/)[0] || "tudo bem";
-  const message = `Feliz aniversario, ${firstName}! Desejamos muita saude, paz e realizacoes neste novo ciclo. Um forte abraco!`;
+  const message = `Feliz aniversário, ${firstName}! Desejamos muita saúde, paz e realizações neste novo ciclo. Um forte abraço!`;
 
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 }
