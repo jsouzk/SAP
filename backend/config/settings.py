@@ -5,9 +5,12 @@ from pathlib import Path
 
 import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
-from decouple import config
+from decouple import AutoConfig
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+config = AutoConfig(search_path=BASE_DIR)
+config.encoding = "utf-8-sig"
 
 
 def config_bool(name, default=False):

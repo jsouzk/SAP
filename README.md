@@ -153,6 +153,9 @@ CSRF_TRUSTED_ORIGINS=<dominio-do-frontend>,<dominio-do-backend>
 FRONTEND_URL=<dominio-do-frontend>
 BACKEND_URL=<dominio-do-backend>
 DATABASE_URL=<connection-string-postgresql>
+EMAIL_BACKEND=anymail.backends.resend.EmailBackend
+RESEND_API_KEY=<chave-api-resend>
+DEFAULT_FROM_EMAIL=Sistema de Atendimento Parlamentar <email-verificado-no-resend>
 ```
 
 Comandos esperados:
