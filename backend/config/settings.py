@@ -22,6 +22,20 @@ def config_bool(name, default=False):
     return bool(default)
 
 
+def resolve_email_backend(resend_api_key, configured_backend, debug):
+    if resend_api_key and configured_backend in {
+        "",
+        "django.core.mail.backends.smtp.EmailBackend",
+        "django.core.mail.backends.console.EmailBackend",
+    }:
+        return "anymail.backends.resend.EmailBackend"
+    return configured_backend or (
+        "django.core.mail.backends.console.EmailBackend"
+        if debug
+        else "django.core.mail.backends.smtp.EmailBackend"
+    )
+
+
 SECRET_KEY = config("SECRET_KEY", default="dev-secret-key-change-me")
 DEBUG = config_bool("DEBUG", default=True)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")
@@ -153,17 +167,13 @@ CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="http://localhost:
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
 BACKEND_URL = config("BACKEND_URL", default="http://localhost:8000")
 RESEND_API_KEY = config("RESEND_API_KEY", default="")
-DEFAULT_EMAIL_BACKEND = (
-    "anymail.backends.resend.EmailBackend"
-    if RESEND_API_KEY
-    else ("django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend")
-)
 DEFAULT_FROM_EMAIL_VALUE = (
     "Sistema de Atendimento Parlamentar <onboarding@resend.dev>"
     if RESEND_API_KEY
     else "Sistema de Atendimento Parlamentar <no-reply@localhost>"
 )
-EMAIL_BACKEND = config("EMAIL_BACKEND", default=DEFAULT_EMAIL_BACKEND)
+CONFIGURED_EMAIL_BACKEND = config("EMAIL_BACKEND", default="")
+EMAIL_BACKEND = resolve_email_backend(RESEND_API_KEY, CONFIGURED_EMAIL_BACKEND, DEBUG)
 EMAIL_HOST = config("EMAIL_HOST", default="localhost")
 EMAIL_PORT = int(config("EMAIL_PORT", default="25"))
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")

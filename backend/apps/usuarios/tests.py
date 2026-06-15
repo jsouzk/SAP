@@ -1,5 +1,6 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
+from django.test import SimpleTestCase
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils.encoding import force_bytes
@@ -7,6 +8,18 @@ from django.utils.http import urlsafe_base64_encode
 from rest_framework.test import APIClient
 
 from apps.usuarios.models import Usuario
+
+
+class EmailBackendConfigTests(SimpleTestCase):
+    def test_resend_key_forca_backend_resend_quando_backend_antigo_e_smtp(self):
+        from config.settings import resolve_email_backend
+
+        backend = resolve_email_backend(
+            "re_test",
+            "django.core.mail.backends.smtp.EmailBackend",
+            debug=False,
+        )
+        self.assertEqual(backend, "anymail.backends.resend.EmailBackend")
 
 
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", FRONTEND_URL="http://localhost:5173")
