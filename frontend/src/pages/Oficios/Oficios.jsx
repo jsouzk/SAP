@@ -51,12 +51,6 @@ function OficioDocument({ oficio, documentRef }) {
       ref={documentRef}
       className="relative mx-auto h-[1123px] w-[794px] overflow-hidden bg-white px-[82px] pb-[88px] pt-[42px] text-[14px] leading-6 text-slate-950 shadow-soft"
     >
-      <svg className="absolute left-0 top-0 h-[170px] w-[570px]" viewBox="0 0 570 170" fill="none" aria-hidden="true">
-        <path d="M0 0C64 28 134 58 222 58C310 58 386 32 475 0H0Z" fill="#f4faf5" />
-        <path d="M0 12C50 39 108 66 180 70C270 76 352 52 442 16" stroke="#137c3a" strokeWidth="7" />
-        <path d="M0 34C41 58 92 82 155 87C245 94 325 73 408 41" stroke="#76b66b" strokeWidth="3.5" />
-      </svg>
-
       <header className="relative z-10 h-[180px]">
         <div className="absolute left-0 top-2 flex items-center gap-3">
           <img src={logoCamara} alt="Camara Municipal de Iranduba" className="h-[82px] w-[82px] shrink-0 object-contain" />
@@ -95,10 +89,6 @@ function OficioDocument({ oficio, documentRef }) {
       </main>
 
       <footer className="absolute bottom-0 left-0 right-0 h-[155px] text-center text-[11px] leading-5 text-slate-700">
-        <svg className="absolute left-0 top-8 h-28 w-[500px]" viewBox="0 0 570 140" fill="none" aria-hidden="true">
-          <path d="M0 88C103 36 190 17 300 38C403 58 485 38 570 0" stroke="#137c3a" strokeWidth="7" />
-          <path d="M0 116C105 61 196 36 310 58C415 78 497 55 570 25" stroke="#76b66b" strokeWidth="3.5" />
-        </svg>
         <div className="absolute bottom-8 left-1/2 w-[260px] -translate-x-1/2 text-center text-[9px] leading-4 text-slate-600">
           <p>Pra&ccedil;a dos Tr&ecirc;s Poderes, 30 - CENTRO</p>
           <p>Iranduba/AM - CEP: 69415-000</p>
