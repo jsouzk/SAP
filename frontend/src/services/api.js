@@ -32,6 +32,15 @@ function getCookie(name) {
     ?.split("=")[1];
 }
 
+function isPublicAuthRequest(url = "") {
+  return [
+    "/auth/me/",
+    "/auth/token/",
+    "/auth/password-reset/",
+    "/auth/password-reset/confirm/",
+  ].some((path) => url.includes(path));
+}
+
 api.interceptors.request.use((config) => {
   const method = (config.method || "get").toUpperCase();
   if (!["GET", "HEAD", "OPTIONS", "TRACE"].includes(method)) {
@@ -50,10 +59,10 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     const isRefreshRequest = originalRequest?.url?.includes("/auth/token/refresh/");
-    const isLoginRequest = originalRequest?.url?.includes("/auth/token/");
     const isLogoutRequest = originalRequest?.url?.includes("/auth/logout/");
+    const isPublicRequest = isPublicAuthRequest(originalRequest?.url);
 
-    if (error.response?.status === 401 && !originalRequest?._retry && !isRefreshRequest && !isLoginRequest && !isLogoutRequest) {
+    if (error.response?.status === 401 && !originalRequest?._retry && !isRefreshRequest && !isPublicRequest && !isLogoutRequest) {
       originalRequest._retry = true;
 
       try {
