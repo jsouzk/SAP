@@ -7,6 +7,28 @@ import { ArrowLeft, Building2, KeyRound, Lock, Mail } from "lucide-react";
 import FormField from "../../components/ui/FormField";
 import api from "../../services/api";
 
+function getErrorMessage(error) {
+  if (!error.response) {
+    return "Nao foi possivel conectar ao servidor. Verifique se a API esta online e se a URL do backend esta correta.";
+  }
+
+  const data = error.response.data;
+  if (typeof data === "string") {
+    try {
+      const parsed = JSON.parse(data);
+      return getErrorMessage({ response: { data: parsed, status: error.response.status } });
+    } catch {
+      return `Erro ${error.response.status}: o servidor retornou uma resposta inesperada.`;
+    }
+  }
+
+  const message = data?.detail || data?.token || data?.email || data?.password?.[0] || data?.password_confirm;
+  if (Array.isArray(message)) {
+    return message[0];
+  }
+  return message || `Nao foi possivel concluir a solicitacao. Erro ${error.response.status}.`;
+}
+
 export default function PasswordReset() {
   const navigate = useNavigate();
   const { uid, token } = useParams();
@@ -37,9 +59,7 @@ export default function PasswordReset() {
       setSubmitted(true);
       toast.success("Solicitacao enviada.");
     } catch (error) {
-      const data = error.response?.data;
-      const message = data?.detail || data?.token || data?.password?.[0] || data?.password_confirm || "Nao foi possivel concluir a solicitacao.";
-      toast.error(Array.isArray(message) ? message[0] : message);
+      toast.error(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
