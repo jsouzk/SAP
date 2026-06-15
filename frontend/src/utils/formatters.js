@@ -36,3 +36,14 @@ export function formatPhoneInput(value = "") {
   }
   return digits.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
 }
+
+export function buildBirthdayWhatsAppUrl({ nome = "", telefone = "" } = {}) {
+  const digits = onlyDigits(telefone);
+  if (!digits) return "";
+
+  const phone = digits.length <= 11 ? `55${digits}` : digits;
+  const firstName = nome.trim().split(/\s+/)[0] || "tudo bem";
+  const message = `Feliz aniversario, ${firstName}! Desejamos muita saude, paz e realizacoes neste novo ciclo. Um forte abraco!`;
+
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+}

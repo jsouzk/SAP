@@ -1,4 +1,4 @@
-import { ArrowLeft, Briefcase, Calendar, IdCard, Mail, MapPin, Phone } from "lucide-react";
+import { ArrowLeft, Briefcase, Calendar, Gift, IdCard, Mail, MapPin, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
@@ -7,7 +7,7 @@ import LoadingState from "../../components/ui/LoadingState";
 import PageHeader from "../../components/ui/PageHeader";
 import { pessoasApi } from "../../services/resources";
 import { ATENDIMENTO_STATUS_LABELS } from "../../utils/constants";
-import { formatCpfInput, formatDateTime } from "../../utils/formatters";
+import { buildBirthdayWhatsAppUrl, formatCpfInput, formatDateTime } from "../../utils/formatters";
 
 function Info({ icon: Icon, label, value }) {
   return (
@@ -30,10 +30,18 @@ export default function PessoaDetalhes() {
 
   if (loading) return <LoadingState />;
 
+  const birthdayUrl = buildBirthdayWhatsAppUrl(pessoa);
+
   return (
     <>
-      <div className="mb-4">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <Link className="btn-secondary" to="/pessoas"><ArrowLeft size={16} />Voltar</Link>
+        {birthdayUrl && (
+          <a className="btn-secondary text-emerald-700" href={birthdayUrl} target="_blank" rel="noreferrer">
+            <Gift size={16} />
+            Feliz aniversario
+          </a>
+        )}
       </div>
       <PageHeader title={pessoa?.nome || "Pessoa"} description="Dados cadastrais, linha do tempo, comentários e anexos vinculados a esta pessoa." />
 

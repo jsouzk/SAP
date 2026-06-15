@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { Gift } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import Actions from "../../components/ui/Actions";
@@ -17,7 +18,7 @@ import { useCrudResource } from "../../hooks/useCrudResource";
 import { pessoasApi } from "../../services/resources";
 import api from "../../services/api";
 import { ATENDIMENTO_STATUS_LABELS } from "../../utils/constants";
-import { formatCpfInput, formatDateTime, formatPhoneInput, maskCpf, onlyDigits } from "../../utils/formatters";
+import { buildBirthdayWhatsAppUrl, formatCpfInput, formatDateTime, formatPhoneInput, maskCpf, onlyDigits } from "../../utils/formatters";
 
 const emptyForm = {
   nome: "",
@@ -117,7 +118,9 @@ export default function Pessoas() {
             <table className="min-w-full">
               <thead className="bg-slate-50"><tr><th className="table-th">Nome</th><th className="table-th">CPF</th><th className="table-th">Telefone</th><th className="table-th">Nascimento</th><th className="table-th">Trabalho</th><th className="table-th">Título</th><th className="table-th text-right">Ações</th></tr></thead>
               <tbody>
-                {resource.items.map((item) => (
+                {resource.items.map((item) => {
+                  const birthdayUrl = buildBirthdayWhatsAppUrl(item);
+                  return (
                   <tr key={item.id}>
                     <td className="table-td font-semibold text-slate-950">{item.nome}</td>
                     <td className="table-td">{maskCpf(item.cpf)}</td>
@@ -125,9 +128,21 @@ export default function Pessoas() {
                     <td className="table-td">{item.data_nascimento || "-"}</td>
                     <td className="table-td">{item.local_trabalho || "-"}</td>
                     <td className="table-td">{item.titulo_eleitor || "-"}</td>
-                    <td className="table-td"><div className="flex justify-end gap-1"><Link className="btn-secondary min-h-9 px-3 py-1.5" to={`/pessoas/${item.id}`}>Detalhes</Link><Actions onView={() => setViewing(item)} onEdit={() => openForm(item)} onDelete={() => setDeleting(item)} /></div></td>
+                    <td className="table-td">
+                      <div className="flex flex-wrap justify-end gap-1">
+                        {birthdayUrl && (
+                          <a className="btn-secondary min-h-9 px-3 py-1.5 text-emerald-700" href={birthdayUrl} target="_blank" rel="noreferrer" aria-label={`Desejar feliz aniversario para ${item.nome}`}>
+                            <Gift size={15} />
+                            <span className="hidden xl:inline">Aniversario</span>
+                          </a>
+                        )}
+                        <Link className="btn-secondary min-h-9 px-3 py-1.5" to={`/pessoas/${item.id}`}>Detalhes</Link>
+                        <Actions onView={() => setViewing(item)} onEdit={() => openForm(item)} onDelete={() => setDeleting(item)} />
+                      </div>
+                    </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
