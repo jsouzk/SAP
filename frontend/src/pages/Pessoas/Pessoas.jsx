@@ -133,7 +133,7 @@ export default function Pessoas() {
                         {birthdayUrl && (
                           <a className="btn-secondary min-h-9 px-3 py-1.5 text-emerald-700" href={birthdayUrl} target="_blank" rel="noreferrer" aria-label={`Desejar feliz aniversario para ${item.nome}`}>
                             <Gift size={15} />
-                            <span className="hidden xl:inline">Aniversario</span>
+                            <span className="hidden xl:inline">Aniversário</span>
                           </a>
                         )}
                         <Link className="btn-secondary min-h-9 px-3 py-1.5" to={`/pessoas/${item.id}`}>Detalhes</Link>
