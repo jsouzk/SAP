@@ -37,7 +37,22 @@ export function formatPhoneInput(value = "") {
   return digits.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
 }
 
-export function buildBirthdayWhatsAppUrl({ nome = "", telefone = "" } = {}) {
+function isBirthdayToday(dataNascimento) {
+  if (!dataNascimento) return false;
+
+  const match = String(dataNascimento).match(/^\d{4}-(\d{2})-(\d{2})/);
+  if (!match) return false;
+
+  const today = new Date();
+  const birthdayMonth = Number(match[1]);
+  const birthdayDay = Number(match[2]);
+
+  return birthdayMonth === today.getMonth() + 1 && birthdayDay === today.getDate();
+}
+
+export function buildBirthdayWhatsAppUrl({ nome = "", telefone = "", data_nascimento = "" } = {}) {
+  if (!isBirthdayToday(data_nascimento)) return "";
+
   const digits = onlyDigits(telefone);
   if (!digits) return "";
 
